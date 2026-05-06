@@ -1,0 +1,20 @@
+{
+  "name": "miku-text-bundle-skills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent Skills package for miku-text-bundle.",
+  "scripts": {
+    "build": "node scripts/validate-skill.mjs",
+    "test": "node scripts/validate-skill.mjs && node scripts/smoke-runtime.mjs",
+    "test:structure": "node scripts/validate-skill.mjs",
+    "test:runtime": "node scripts/smoke-runtime.mjs"
+  },
+  "files": [
+    "skills/",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "Apache-2.0"
+}
