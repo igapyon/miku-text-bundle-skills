@@ -5,7 +5,7 @@ import {
   defaultRuntimeBackend,
   planRuntimeSelection,
   resolveRuntime
-} from "../lib/runtime-artifacts.mjs";
+} from "../skills/miku-text-bundle/lib/runtime-artifacts.mjs";
 
 const root = process.cwd();
 const smokeRoot = path.join(root, "workplace", "runtime-smoke-auto");

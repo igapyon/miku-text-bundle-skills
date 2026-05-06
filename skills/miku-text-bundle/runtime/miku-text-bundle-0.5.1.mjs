@@ -277,10 +277,17 @@ function normalizePattern(pattern) {
 // cli.js
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
+const CLI_VERSION = "0.5.1";
 class HelpRequestedError extends Error {
     constructor() {
         super("Help requested.");
         this.name = "HelpRequestedError";
+    }
+}
+class VersionRequestedError extends Error {
+    constructor() {
+        super("Version requested.");
+        this.name = "VersionRequestedError";
     }
 }
 function readRequiredOptionValue(argv, index, optionName) {
@@ -317,6 +324,9 @@ function consumeOption(argv, index, state) {
     const arg = argv[index];
     if (arg === "--help" || arg === "-h") {
         throw new HelpRequestedError();
+    }
+    if (arg === "--version" || arg === "-v") {
+        throw new VersionRequestedError();
     }
     if (arg === "--input-directory") {
         state.inputDirectory = readRequiredOptionValue(argv, index, "--input-directory");
@@ -390,12 +400,17 @@ function printHelp() {
     console.log(`Usage:
   miku-text-bundle <inputDir> [outputDir] [--max-chars 120000] [--max-input-file-bytes 1000000] [--include "glob"] [--exclude "glob"] [--verbose]
   miku-text-bundle --input-directory <dir> [--output-directory <dir>] [--max-chars 120000] [--max-input-file-bytes 1000000]
+  miku-text-bundle --help
+  miku-text-bundle --version
 
 Description:
   Collect repository text files and generate split Markdown bundles for
   generative AI handoff. When outputDir is omitted, outputs are written under
   workplace/miku-text-bundle/<yyyyMMddHHmm>/.
 `);
+}
+function printVersion() {
+    console.log(CLI_VERSION);
 }
 
 // bundler.js
@@ -764,6 +779,10 @@ function main() {
             printHelp();
             process.exit(0);
         }
+        if (error instanceof VersionRequestedError) {
+            printVersion();
+            process.exit(0);
+        }
         const message = error instanceof Error ? error.message : String(error);
         console.error(`error: ${message}`);
         printHelp();
@@ -776,8 +795,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
 export {
   HelpRequestedError,
+  VersionRequestedError,
+  CLI_VERSION,
   parseArgs,
   printHelp,
+  printVersion,
   createTextBundle,
   chooseOutputDirectory,
   defaultOutputBase,

@@ -1,0 +1,93 @@
+name: Build And Upload Release Asset
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "GitHub Release tag to attach the skill bundle zip to"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.release.tag_name || github.event.inputs.tag_name, 'v')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag_name || github.event.release.tag_name || github.ref }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify runtime artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          java_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.0.2.jar"
+          node_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-0.5.1.mjs"
+          test -s "${java_runtime}"
+          test -s "${node_runtime}"
+          java -jar "${java_runtime}" --version
+          node "${node_runtime}" --version
+
+      - name: Build release bundle
+        run: npm run build
+
+      - name: Verify release tag version
+        id: release_version
+        shell: bash
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag_name || github.event.release.tag_name || github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG_NAME#v}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          case "${VERSION}" in
+            "${PACKAGE_VERSION}"|"${PACKAGE_VERSION}".*) ;;
+            *)
+              echo "Release tag version (${VERSION}) must match package.json version (${PACKAGE_VERSION}) or add a dot suffix such as ${PACKAGE_VERSION}.2." >&2
+              exit 1
+              ;;
+          esac
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "package_version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release zip
+        id: prepare_zip
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_zip="bundle/igapyon-miku-text-bundle-skills-${{ steps.release_version.outputs.package_version }}.zip"
+          target_zip="release-assets/igapyon-miku-text-bundle-skills-${{ steps.release_version.outputs.version }}.zip"
+          if [[ ! -s "${source_zip}" ]]; then
+            echo "release zip not found or empty: ${source_zip}" >&2
+            exit 1
+          fi
+          mkdir -p release-assets
+          cp "${source_zip}" "${target_zip}"
+          echo "zip_path=${target_zip}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload zip to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.event.release.tag_name || github.ref_name }}
+          files: ${{ steps.prepare_zip.outputs.zip_path }}
+          draft: false
+          prerelease: false

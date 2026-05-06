@@ -14,15 +14,18 @@ The initial version has no MCP backend. Do not call MCP tools as an automatic fa
 6. Run the selected runtime artifact with the requested input and output paths.
 7. Report generated files, collected file count, part count, warnings, and errors.
 
+Supported operations and artifact roles are summarized in
+[runtime/operations-map.md](runtime/operations-map.md).
+
 ## Runtime Commands
 
-Runtime lookup and digest verification are defined in `lib/runtime-artifacts.mjs`.
+Runtime lookup and digest verification are defined in `lib/runtime-artifacts.mjs` under this skill directory.
 The default runtime backend is `java`; fallback runtime order is `java`, then `node`.
 
 Node runtime:
 
 ```sh
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.5.0.3.mjs <inputDir> <outputDir>
+node skills/miku-text-bundle/runtime/miku-text-bundle-0.5.1.mjs <inputDir> <outputDir>
 ```
 
 Java runtime:
