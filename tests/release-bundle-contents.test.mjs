@@ -1,0 +1,51 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import test from "node:test";
+
+const ROOT = process.cwd();
+const packageJson = JSON.parse(fs.readFileSync(path.resolve(ROOT, "package.json"), "utf8"));
+const zipPath = path.resolve(
+  ROOT,
+  `bundle/igapyon-miku-text-bundle-skills-${packageJson.version}.zip`
+);
+
+test("release zip contains skill files and excludes development-only files", () => {
+  execFileSync("npm", ["run", "build:bundle:zip"], {
+    cwd: ROOT,
+    encoding: "utf8"
+  });
+
+  assert.equal(fs.existsSync(zipPath), true);
+
+  const entries = execFileSync("unzip", ["-Z1", zipPath], {
+    cwd: ROOT,
+    encoding: "utf8"
+  }).trim().split(/\n/).filter(Boolean);
+
+  assertIncludes(entries, "skills/miku-text-bundle/SKILL.md");
+  assertIncludes(entries, "skills/miku-text-bundle/agents/openai.yaml");
+  assertIncludes(entries, "skills/miku-text-bundle/lib/runtime-artifacts.mjs");
+  assertIncludes(entries, "skills/miku-text-bundle/references/INDEX.md");
+  assertIncludes(entries, "skills/miku-text-bundle/references/upstream.md");
+  assertIncludes(entries, "skills/miku-text-bundle/references/workflow.md");
+  assertIncludes(entries, "skills/miku-text-bundle/references/runtime/operations-map.md");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.1.mjs");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.1.tgz");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.0.2.jar");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.0.2.jar");
+
+  assert.equal(entries.some((entry) => entry.includes(".DS_Store")), false);
+  assert.equal(entries.some((entry) => entry.includes(".gitkeep")), false);
+  assert.equal(entries.some((entry) => entry.startsWith("tests/")), false);
+  assert.equal(entries.some((entry) => entry.startsWith("docs/")), false);
+  assert.equal(entries.some((entry) => entry.startsWith(".github/")), false);
+  assert.equal(entries.some((entry) => entry.startsWith("bundle/")), false);
+  assert.equal(entries.some((entry) => entry.startsWith("workplace/")), false);
+  assert.equal(entries.some((entry) => entry.includes("node_modules/")), false);
+});
+
+function assertIncludes(entries, expected) {
+  assert.ok(entries.includes(expected), `missing zip entry: ${expected}`);
+}

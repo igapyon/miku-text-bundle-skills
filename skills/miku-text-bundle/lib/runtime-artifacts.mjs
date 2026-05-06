@@ -1,14 +1,14 @@
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { access } from "node:fs/promises";
+import { access, realpath } from "node:fs/promises";
 import path from "node:path";
 
 export const runtimeArtifacts = {
   node: {
     backend: "node",
-    version: "0.5.0.3",
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.0.3.mjs",
-    sha256: "fa52a17cdb992a24ab9fbc08df833aa3519c3d2d88297671668cf07dc21bd73c",
+    version: "0.5.1",
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.1.mjs",
+    sha256: "edd2e376ca44187ecab58a86e632be5383e1d8009b2eec9976655954bf405146",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "node",
       artifactPath,
@@ -38,8 +38,8 @@ export const fallbackRuntimeOrder = ["java", "node"];
 
 export const sourceArtifacts = {
   node: {
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.0.3.tgz",
-    sha256: "ae4ee83ed80c57316eb97f3d8a78ef01916d7005bff2e970d105b742e9450d3b"
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.1.tgz",
+    sha256: "d719c46396e12af9e3c12f12a1f23a7ceab58f9e4d6e1185e6d5efdebb44bc74"
   },
   java: {
     file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.0.2.jar",
@@ -72,7 +72,7 @@ export async function resolveArtifact(root, spec) {
   if (actual !== spec.sha256) {
     throw new Error(`Unexpected sha256 for ${spec.file}: ${actual}`);
   }
-  return artifactPath;
+  return realpath(artifactPath);
 }
 
 export async function resolveRuntime(root, backend) {

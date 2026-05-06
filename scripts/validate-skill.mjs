@@ -1,6 +1,9 @@
 import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { allArtifactSpecs, resolveArtifact } from "../lib/runtime-artifacts.mjs";
+import {
+  allArtifactSpecs,
+  resolveArtifact
+} from "../skills/miku-text-bundle/lib/runtime-artifacts.mjs";
 
 const root = process.cwd();
 const skillDir = path.join(root, "skills", "miku-text-bundle");
@@ -9,13 +12,16 @@ const requiredFiles = [
   "TODO.md",
   "LICENSE",
   ".gitignore",
-  "lib/runtime-artifacts.mjs",
+  ".github/workflows/release-build.yml",
   "skills/miku-text-bundle/SKILL.md",
   "skills/miku-text-bundle/agents/openai.yaml",
+  "skills/miku-text-bundle/lib/runtime-artifacts.mjs",
+  "skills/miku-text-bundle/references/INDEX.md",
   "skills/miku-text-bundle/references/upstream.md",
   "skills/miku-text-bundle/references/workflow.md",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.0.3.mjs",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.0.3.tgz",
+  "skills/miku-text-bundle/references/runtime/operations-map.md",
+  "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.1.mjs",
+  "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.1.tgz",
   "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.0.2.jar",
   "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.0.2.jar",
   "workplace/.gitkeep"

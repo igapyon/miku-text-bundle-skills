@@ -32,5 +32,7 @@ This initial version has received CLI runtime artifacts. The skill remains a thi
 
 ## References
 
+- `references/INDEX.md`: detailed reference index
 - `references/upstream.md`: upstream anchor, compatibility source, and runtime artifact policy
 - `references/workflow.md`: CLI-backed workflow and runtime selection policy
+- `references/runtime/operations-map.md`: supported operations, runtime command shapes, and artifact roles

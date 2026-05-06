@@ -3,17 +3,17 @@
 This skill is tied to the upstream main application:
 
 - Repository: <https://github.com/igapyon/miku-text-bundle>
-- Compatibility source: release `v0.5.0.3`
+- Compatibility source: release `v0.5.1`
 - Runtime artifacts: received
 - Current execution pattern: CLI-backed initial skeleton
 
 The repository URL and release tag are the compatibility anchor for the Node runtime.
 
-- Release: <https://github.com/igapyon/miku-text-bundle/releases/tag/v0.5.0.3>
-- Asset: `miku-text-bundle-0.5.0.3.mjs`
-- Asset digest: `sha256:fa52a17cdb992a24ab9fbc08df833aa3519c3d2d88297671668cf07dc21bd73c`
-- Source asset: `miku-text-bundle-sources-0.5.0.3.tgz`
-- Source asset digest: `sha256:ae4ee83ed80c57316eb97f3d8a78ef01916d7005bff2e970d105b742e9450d3b`
+- Release: <https://github.com/igapyon/miku-text-bundle/releases/tag/v0.5.1>
+- Asset: `miku-text-bundle-0.5.1.mjs`
+- Asset digest: `sha256:edd2e376ca44187ecab58a86e632be5383e1d8009b2eec9976655954bf405146`
+- Source asset: `miku-text-bundle-sources-0.5.1.tgz`
+- Source asset digest: `sha256:d719c46396e12af9e3c12f12a1f23a7ceab58f9e4d6e1185e6d5efdebb44bc74`
 
 The Java companion runtime is anchored separately.
 
@@ -43,8 +43,33 @@ miku-text-bundle <inputDir> [outputDir] [--max-chars 120000] [--max-input-file-b
 miku-text-bundle --input-directory <dir> [--output-directory <dir>] [--max-chars 120000] [--max-input-file-bytes 1000000]
 ```
 
-The Node artifact does not support `--version` in `v0.5.0.3`. The Java artifact responds to `--version`, but its output is `miku-text-bundle-java 0.5.0`.
+The Node artifact declares CLI version `0.5.1`. The Java artifact responds to `--version`, but its output is `miku-text-bundle-java 0.5.0`.
 
-## Remaining Unknowns
+## Upstream CLI Contract
 
-The upstream README, supported input formats, supported output formats, full CLI/API surface, diagnostics, and limitations still need a detailed review.
+The received Node source artifact for `v0.5.1` includes the upstream `README.md`,
+`TODO.md`, TypeScript source, tests, and design notes. The README and runtime
+`--help` output describe this core behavior:
+
+- collect text files under an input directory and emit split Markdown bundles for generative AI handoff
+- write to `workplace/miku-text-bundle/<yyyyMMddHHmm>/` under the input directory when the output directory is omitted
+- generate `text-bundle-000-index.md`, one or more `text-bundle-*.md` part files, and `text-bundle-000-prompt.md`
+- default `--max-chars` to `120000`
+- default `--max-input-file-bytes` to `1000000`
+- accept `--include` and `--exclude` as comma-separated glob lists
+- skip files that are binary, non-UTF-8, over the single-file byte limit, ignored by the input-root `.gitignore`, or under repository-root dot directories
+- record skipped files, warnings, and extracted `TODO` / `FIXME` / `XXX` markers in the index file
+
+The upstream `.gitignore` support is intentionally limited. It reads only the
+input-root `.gitignore`, does not implement full Git ignore semantics, and does
+not let include patterns restore `.gitignore`-excluded files or root dot
+directory files.
+
+The Java companion artifact is treated as the preferred execution runtime for
+this skill, but the Node artifact remains the compatibility source for upstream
+`miku-text-bundle` release `v0.5.1`.
+
+## Remaining Follow-Ups
+
+- Compare with a similar local `-skills` sister project checkout when one is placed under `workplace/`.
+- Keep checking future upstream releases before changing artifact names, digests, runtime selection, or documented CLI behavior.
