@@ -1,6 +1,6 @@
 {
   "name": "miku-text-bundle-skills",
-  "version": "0.5.0",
+  "version": "0.5.3",
   "private": true,
   "type": "module",
   "description": "Agent Skills package for miku-text-bundle.",

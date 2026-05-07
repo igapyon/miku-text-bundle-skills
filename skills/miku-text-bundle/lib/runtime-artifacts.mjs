@@ -6,9 +6,9 @@ import path from "node:path";
 export const runtimeArtifacts = {
   node: {
     backend: "node",
-    version: "0.5.1",
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.1.mjs",
-    sha256: "edd2e376ca44187ecab58a86e632be5383e1d8009b2eec9976655954bf405146",
+    version: "0.5.3",
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs",
+    sha256: "1e593b841caf7f1a30fd605399488f57f3dd2255a4ad31e445dafeaccf382fec",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "node",
       artifactPath,
@@ -19,9 +19,9 @@ export const runtimeArtifacts = {
   },
   java: {
     backend: "java",
-    version: "0.5.0.2",
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.0.2.jar",
-    sha256: "af2f5677aa82b706e0da99c2f1260cdbc9fd497d985a083621cd132906d85e5b",
+    version: "0.5.3",
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar",
+    sha256: "261bd08af4870029063b981a9f2951a3d8641de638e26f1b4d35d504ed55a64e",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "java",
       "-jar",
@@ -38,12 +38,12 @@ export const fallbackRuntimeOrder = ["java", "node"];
 
 export const sourceArtifacts = {
   node: {
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.1.tgz",
-    sha256: "d719c46396e12af9e3c12f12a1f23a7ceab58f9e4d6e1185e6d5efdebb44bc74"
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.3.tgz",
+    sha256: "e40478bc8f0e4cb026caf7ef1554479572608762863791cbde796cd607fd0229"
   },
   java: {
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.0.2.jar",
-    sha256: "df8b7a510a25292d7ec642c849f19944d4a23c5e0e4e94be1025568a100a4e31"
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.3.jar",
+    sha256: "2ec6b45362e3f28b4f13a2fa7048152323a83c71838295b575d938e7f696ebd4"
   }
 };
 

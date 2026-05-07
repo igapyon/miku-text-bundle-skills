@@ -31,10 +31,10 @@ test("release zip contains skill files and excludes development-only files", () 
   assertIncludes(entries, "skills/miku-text-bundle/references/upstream.md");
   assertIncludes(entries, "skills/miku-text-bundle/references/workflow.md");
   assertIncludes(entries, "skills/miku-text-bundle/references/runtime/operations-map.md");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.1.mjs");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.1.tgz");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.0.2.jar");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.0.2.jar");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.3.tgz");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.3.jar");
 
   assert.equal(entries.some((entry) => entry.includes(".DS_Store")), false);
   assert.equal(entries.some((entry) => entry.includes(".gitkeep")), false);

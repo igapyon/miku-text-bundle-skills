@@ -277,7 +277,8 @@ function normalizePattern(pattern) {
 // cli.js
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
-const CLI_VERSION = "0.5.1";
+const CLI_VERSION = "0.5.3";
+const SUPPORTED_ENCODINGS = new Set(["utf-8", "shift_jis"]);
 class HelpRequestedError extends Error {
     constructor() {
         super("Help requested.");
@@ -310,10 +311,36 @@ function parsePositiveInteger(value, optionName) {
     }
     return parsed;
 }
+function parseSupportedEncoding(value, optionName) {
+    if (SUPPORTED_ENCODINGS.has(value)) {
+        return value;
+    }
+    throw new Error(`${optionName} must be one of: utf-8, shift_jis.`);
+}
+function parseEncodingExtensions(value) {
+    const extensions = {};
+    for (const item of parsePatternList(value)) {
+        const separatorIndex = item.indexOf("=");
+        if (separatorIndex <= 0 || separatorIndex === item.length - 1) {
+            throw new Error("--encoding-extension entries must use .ext=encoding format.");
+        }
+        const extension = item.slice(0, separatorIndex).trim();
+        const encoding = item.slice(separatorIndex + 1).trim();
+        if (!extension.startsWith(".") || extension.includes("/") || extension.includes("\\")) {
+            throw new Error("--encoding-extension keys must be exact extensions with a leading dot.");
+        }
+        extensions[extension] = parseSupportedEncoding(encoding, "--encoding-extension");
+    }
+    return extensions;
+}
 function createParseState() {
     return {
         maxChars: CLI_DEFAULT_MAX_CHARS,
         maxInputFileBytes: CLI_DEFAULT_MAX_INPUT_FILE_BYTES,
+        encoding: {
+            default: "utf-8",
+            extensions: {},
+        },
         includePatterns: [],
         excludePatterns: [],
         verbose: false,
@@ -342,6 +369,17 @@ function consumeOption(argv, index, state) {
     }
     if (arg === "--max-input-file-bytes") {
         state.maxInputFileBytes = parsePositiveInteger(readRequiredOptionValue(argv, index, "--max-input-file-bytes"), "--max-input-file-bytes");
+        return index + 1;
+    }
+    if (arg === "--encoding") {
+        state.encoding.default = parseSupportedEncoding(readRequiredOptionValue(argv, index, "--encoding"), "--encoding");
+        return index + 1;
+    }
+    if (arg === "--encoding-extension") {
+        state.encoding.extensions = {
+            ...state.encoding.extensions,
+            ...parseEncodingExtensions(readRequiredOptionValue(argv, index, "--encoding-extension")),
+        };
         return index + 1;
     }
     if (arg === "--include") {
@@ -391,6 +429,7 @@ function parseArgs(argv) {
         outputDirectory: state.outputDirectory,
         maxChars: state.maxChars,
         maxInputFileBytes: state.maxInputFileBytes,
+        encoding: state.encoding,
         includePatterns: state.includePatterns,
         excludePatterns: state.excludePatterns,
         verbose: state.verbose,
@@ -398,8 +437,8 @@ function parseArgs(argv) {
 }
 function printHelp() {
     console.log(`Usage:
-  miku-text-bundle <inputDir> [outputDir] [--max-chars 120000] [--max-input-file-bytes 1000000] [--include "glob"] [--exclude "glob"] [--verbose]
-  miku-text-bundle --input-directory <dir> [--output-directory <dir>] [--max-chars 120000] [--max-input-file-bytes 1000000]
+  miku-text-bundle <inputDir> [outputDir] [--max-chars 120000] [--max-input-file-bytes 1000000] [--encoding utf-8|shift_jis] [--encoding-extension ".java=shift_jis"] [--include "glob"] [--exclude "glob"] [--verbose]
+  miku-text-bundle --input-directory <dir> [--output-directory <dir>] [--max-chars 120000] [--max-input-file-bytes 1000000] [--encoding utf-8|shift_jis]
   miku-text-bundle --help
   miku-text-bundle --version
 
@@ -420,6 +459,10 @@ const DEFAULT_ROOT_FILES = ["README.md", "TODO.md"];
 const INDEX_FILE_NAME = "text-bundle-000-index.md";
 const PROMPT_FILE_NAME = "text-bundle-000-prompt.md";
 const DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
+const DEFAULT_ENCODING_OPTIONS = {
+    default: "utf-8",
+    extensions: {},
+};
 function formatTimestamp(date) {
     const pad = (value) => String(value).padStart(2, "0");
     return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}`;
@@ -526,16 +569,27 @@ function discoverCandidateFiles(inputPath, options, gitignorePatterns) {
         .filter((filePath) => shouldCollectCandidate(inputPath, filePath, options, gitignorePatterns))
         .sort((a, b) => relativeInputPath(inputPath, a).localeCompare(relativeInputPath(inputPath, b), "ja"));
 }
-function decodeUtf8(buffer) {
+function selectEncoding(relativePath, options) {
+    const extension = extname(relativePath);
+    const encoding = options.encoding ?? DEFAULT_ENCODING_OPTIONS;
+    return encoding.extensions[extension] ?? encoding.default;
+}
+function decodeText(buffer, encoding) {
     if (buffer.includes(0)) {
         return undefined;
     }
     try {
-        return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+        if (encoding === "utf-8") {
+            return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+        }
+        return iconv.decode(buffer, "shift_jis");
     }
     catch {
         return undefined;
     }
+}
+function formatEncoding(encoding) {
+    return encoding === "utf-8" ? "UTF-8" : "Shift_JIS";
 }
 function extractMarkers(relativePath, content) {
     return content.split(/\r?\n/).flatMap((lineText, index) => {
@@ -557,10 +611,10 @@ function skippedForOversizedFile(relativePath, maxInputFileBytes) {
         reason: `ファイルサイズが ${maxInputFileBytes} bytes の上限を超えたためスキップしました。`,
     };
 }
-function skippedForUnreadableFile(relativePath) {
+function skippedForUnreadableFile(relativePath, encoding) {
     return {
         relativePath,
-        reason: "UTF-8 として読めない、またはバイナリと判定したためスキップしました。",
+        reason: `${formatEncoding(encoding)} として読めない、またはバイナリと判定したためスキップしました。`,
     };
 }
 function createCollectedFile(filePath, relativePath, content) {
@@ -586,9 +640,10 @@ function collectFiles(inputPath, options, gitignorePatterns) {
             continue;
         }
         const buffer = readFileSync(filePath);
-        const content = decodeUtf8(buffer);
+        const encoding = selectEncoding(relativePath, options);
+        const content = decodeText(buffer, encoding);
         if (content === undefined) {
-            skipped.push(skippedForUnreadableFile(relativePath));
+            skipped.push(skippedForUnreadableFile(relativePath, encoding));
             continue;
         }
         files.push(createCollectedFile(filePath, relativePath, content));
