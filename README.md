@@ -10,7 +10,7 @@ This repository is the `-skills` companion repository for:
 - Backend policy: `cli-preferred`, with no MCP backend in the initial version
 - Runtime selection: Java first, Node.js fallback when the Java runtime is missing or unusable
 
-The upstream main application compatibility source is `miku-text-bundle` release `v0.5.1`. The Java companion runtime source is `miku-text-bundle-java` release `v0.5.0.2`. Keep product semantics in the upstream applications and use this repository as the agent-facing workflow adapter.
+The upstream main application compatibility source is `miku-text-bundle` release `v0.5.3`. The Java companion runtime source is `miku-text-bundle-java` release `v0.5.3`. Keep product semantics in the upstream applications and use this repository as the agent-facing workflow adapter.
 
 ## Repository Layout
 
@@ -59,10 +59,14 @@ This initial repository has no MCP backend. Do not call or configure MCP as an a
 
 The following received artifacts are expected under `skills/miku-text-bundle/runtime/`:
 
-- `miku-text-bundle-0.5.1.mjs`
-- `miku-text-bundle-sources-0.5.1.tgz`
-- `miku-text-bundle-java-0.5.0.2.jar`
-- `miku-text-bundle-java-sources-0.5.0.2.jar`
+- `miku-text-bundle-0.5.3.mjs`
+- `miku-text-bundle-sources-0.5.3.tgz`
+- `miku-text-bundle-java-0.5.3.jar`
+- `miku-text-bundle-java-sources-0.5.3.jar`
+
+The `0.5.3` runtimes support explicit input encoding options, including
+`--encoding shift_jis` and extension-specific rules such as
+`--encoding-extension ".java=shift_jis"`.
 
 ## Developer Documents
 
