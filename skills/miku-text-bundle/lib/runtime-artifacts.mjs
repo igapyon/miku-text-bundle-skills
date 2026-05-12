@@ -6,27 +6,31 @@ import path from "node:path";
 export const runtimeArtifacts = {
   node: {
     backend: "node",
-    version: "0.5.3",
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs",
-    sha256: "1e593b841caf7f1a30fd605399488f57f3dd2255a4ad31e445dafeaccf382fec",
+    version: "0.8.0",
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs",
+    sha256: "67dd613eb319d6a3bc7844a443fbee31dfaec03d695fbea8e58eadeb1b3fa9f6",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "node",
       artifactPath,
+      "--input",
       inputDir,
+      "--output",
       outputDir,
       ...options
     ]
   },
   java: {
     backend: "java",
-    version: "0.5.3",
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar",
-    sha256: "261bd08af4870029063b981a9f2951a3d8641de638e26f1b4d35d504ed55a64e",
+    version: "0.8.0",
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar",
+    sha256: "bb2b7f248987f4bedfdb7abe36f41cbbc0ae013aae174bef37c51ae8d1e5e5db",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "java",
       "-jar",
       artifactPath,
+      "--input",
       inputDir,
+      "--output",
       outputDir,
       ...options
     ]
@@ -38,12 +42,12 @@ export const fallbackRuntimeOrder = ["java", "node"];
 
 export const sourceArtifacts = {
   node: {
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.5.3.tgz",
-    sha256: "e40478bc8f0e4cb026caf7ef1554479572608762863791cbde796cd607fd0229"
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.8.0.tgz",
+    sha256: "af7a039c40c6ab5d2b917461a3fcf97ec3b7d2103a21d40e2837c4296bfb3b8c"
   },
   java: {
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.5.3.jar",
-    sha256: "2ec6b45362e3f28b4f13a2fa7048152323a83c71838295b575d938e7f696ebd4"
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.8.0.jar",
+    sha256: "c7886d8e98c514278906d791ee6a586a4a2976f25cfb89d073cdf79d8c8762d9"
   }
 };
 

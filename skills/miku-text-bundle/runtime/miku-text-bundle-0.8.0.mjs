@@ -277,8 +277,73 @@ function normalizePattern(pattern) {
 // cli.js
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
-const CLI_VERSION = "0.5.3";
+const CLI_VERSION = "0.8.0";
 const SUPPORTED_ENCODINGS = new Set(["utf-8", "shift_jis"]);
+const DEFAULT_EXCLUDE_EXTENSIONS = [
+    ".7z",
+    ".aac",
+    ".avi",
+    ".bmp",
+    ".bz2",
+    ".class",
+    ".db",
+    ".dll",
+    ".doc",
+    ".docx",
+    ".dylib",
+    ".exe",
+    ".flac",
+    ".gif",
+    ".gz",
+    ".ico",
+    ".jar",
+    ".jpeg",
+    ".jpg",
+    ".m4a",
+    ".mkv",
+    ".mov",
+    ".mp3",
+    ".mp4",
+    ".ogg",
+    ".otf",
+    ".parquet",
+    ".pdf",
+    ".png",
+    ".ppt",
+    ".pptx",
+    ".rar",
+    ".so",
+    ".sqlite",
+    ".svgz",
+    ".tar",
+    ".tgz",
+    ".tiff",
+    ".ttf",
+    ".war",
+    ".wav",
+    ".webm",
+    ".webp",
+    ".woff",
+    ".woff2",
+    ".xls",
+    ".xlsx",
+    ".xz",
+    ".zip",
+];
+const DEFAULT_EXCLUDE_DIRECTORIES = [
+    ".git",
+    ".codex",
+    ".vscode",
+    ".idea",
+    "node_modules",
+    "dist",
+    "build",
+    "target",
+    "coverage",
+    "workplace",
+    "tmp",
+    "temp",
+];
 class HelpRequestedError extends Error {
     constructor() {
         super("Help requested.");
@@ -317,6 +382,24 @@ function parseSupportedEncoding(value, optionName) {
     }
     throw new Error(`${optionName} must be one of: utf-8, shift_jis.`);
 }
+function parseExtensionList(value, optionName) {
+    return parsePatternList(value).map((item) => {
+        const extension = item.toLowerCase();
+        if (extension.length <= 1 || !extension.startsWith(".") || extension.includes("/") || extension.includes("\\")) {
+            throw new Error(`${optionName} values must be extensions with a leading dot.`);
+        }
+        return extension;
+    });
+}
+function parseDirectoryList(value, optionName) {
+    return parsePatternList(value).map((item) => {
+        const directory = normalizePattern(item).replace(/\/+$/, "");
+        if (directory.length === 0 || directory === ".") {
+            throw new Error(`${optionName} values must be relative directory names or paths.`);
+        }
+        return directory;
+    });
+}
 function parseEncodingExtensions(value) {
     const extensions = {};
     for (const item of parsePatternList(value)) {
@@ -341,26 +424,25 @@ function createParseState() {
             default: "utf-8",
             extensions: {},
         },
-        includePatterns: [],
-        excludePatterns: [],
+        excludeExtensions: new Set(DEFAULT_EXCLUDE_EXTENSIONS),
+        excludeDirectories: new Set(DEFAULT_EXCLUDE_DIRECTORIES),
         verbose: false,
-        positional: [],
     };
 }
 function consumeOption(argv, index, state) {
     const arg = argv[index];
-    if (arg === "--help" || arg === "-h") {
+    if (arg === "--help") {
         throw new HelpRequestedError();
     }
-    if (arg === "--version" || arg === "-v") {
+    if (arg === "--version") {
         throw new VersionRequestedError();
     }
-    if (arg === "--input-directory") {
-        state.inputDirectory = readRequiredOptionValue(argv, index, "--input-directory");
+    if (arg === "--input") {
+        state.inputDirectory = readRequiredOptionValue(argv, index, "--input");
         return index + 1;
     }
-    if (arg === "--output-directory") {
-        state.outputDirectory = readRequiredOptionValue(argv, index, "--output-directory");
+    if (arg === "--output") {
+        state.outputDirectory = readRequiredOptionValue(argv, index, "--output");
         return index + 1;
     }
     if (arg === "--max-chars") {
@@ -382,36 +464,45 @@ function consumeOption(argv, index, state) {
         };
         return index + 1;
     }
-    if (arg === "--include") {
-        state.includePatterns = parsePatternList(readRequiredOptionValue(argv, index, "--include"));
+    if (arg === "--add-exclude-extension") {
+        for (const extension of parseExtensionList(readRequiredOptionValue(argv, index, "--add-exclude-extension"), "--add-exclude-extension")) {
+            state.excludeExtensions.add(extension);
+        }
         return index + 1;
     }
-    if (arg === "--exclude") {
-        state.excludePatterns = parsePatternList(readRequiredOptionValue(argv, index, "--exclude"));
+    if (arg === "--remove-exclude-extension") {
+        for (const extension of parseExtensionList(readRequiredOptionValue(argv, index, "--remove-exclude-extension"), "--remove-exclude-extension")) {
+            state.excludeExtensions.delete(extension);
+        }
+        return index + 1;
+    }
+    if (arg === "--add-exclude-directory") {
+        for (const directory of parseDirectoryList(readRequiredOptionValue(argv, index, "--add-exclude-directory"), "--add-exclude-directory")) {
+            state.excludeDirectories.add(directory);
+        }
+        return index + 1;
+    }
+    if (arg === "--remove-exclude-directory") {
+        for (const directory of parseDirectoryList(readRequiredOptionValue(argv, index, "--remove-exclude-directory"), "--remove-exclude-directory")) {
+            state.excludeDirectories.delete(directory);
+        }
         return index + 1;
     }
     if (arg === "--verbose") {
         state.verbose = true;
         return index;
     }
-    if (arg.startsWith("--")) {
+    if (arg.startsWith("-")) {
         throw new Error(`Unknown argument: ${arg}`);
     }
-    state.positional.push(arg);
-    return index;
+    throw new Error(`Positional arguments are not supported. Use --input and --output: ${arg}`);
 }
-function applyPositionalDirectories(state) {
+function validateRequiredDirectories(state) {
     if (!state.inputDirectory) {
-        state.inputDirectory = state.positional[0];
+        throw new Error("Please specify --input.");
     }
     if (!state.outputDirectory) {
-        state.outputDirectory = state.positional[1];
-    }
-    if (state.positional.length > 2) {
-        throw new Error(`Unexpected positional argument: ${state.positional[2]}`);
-    }
-    if (!state.inputDirectory) {
-        throw new Error("Please specify an input directory.");
+        throw new Error("Please specify --output.");
     }
 }
 function parseArgs(argv) {
@@ -419,104 +510,143 @@ function parseArgs(argv) {
     for (let i = 0; i < argv.length; i += 1) {
         i = consumeOption(argv, i, state);
     }
-    applyPositionalDirectories(state);
+    validateRequiredDirectories(state);
     const inputDirectory = state.inputDirectory;
-    if (!inputDirectory) {
-        throw new Error("Please specify an input directory.");
+    const outputDirectory = state.outputDirectory;
+    if (!inputDirectory || !outputDirectory) {
+        throw new Error("Please specify --input and --output.");
     }
     return {
         inputDirectory,
-        outputDirectory: state.outputDirectory,
+        outputDirectory,
         maxChars: state.maxChars,
         maxInputFileBytes: state.maxInputFileBytes,
         encoding: state.encoding,
-        includePatterns: state.includePatterns,
-        excludePatterns: state.excludePatterns,
+        excludeExtensions: [...state.excludeExtensions].sort((a, b) => a.localeCompare(b, "ja")),
+        excludeDirectories: [...state.excludeDirectories].sort((a, b) => a.localeCompare(b, "ja")),
         verbose: state.verbose,
     };
 }
 function printHelp() {
     console.log(`Usage:
-  miku-text-bundle <inputDir> [outputDir] [--max-chars 120000] [--max-input-file-bytes 1000000] [--encoding utf-8|shift_jis] [--encoding-extension ".java=shift_jis"] [--include "glob"] [--exclude "glob"] [--verbose]
-  miku-text-bundle --input-directory <dir> [--output-directory <dir>] [--max-chars 120000] [--max-input-file-bytes 1000000] [--encoding utf-8|shift_jis]
+  miku-text-bundle --input <dir> --output <dir> [options]
   miku-text-bundle --help
   miku-text-bundle --version
 
+Options:
+  --max-chars <number>
+  --max-input-file-bytes <number>
+  --encoding utf-8|shift_jis
+  --encoding-extension ".java=shift_jis"
+  --add-exclude-extension ".ext"
+  --remove-exclude-extension ".ext"
+  --add-exclude-directory "dir"
+  --remove-exclude-directory "dir"
+  --verbose
+
 Description:
-  Collect repository text files and generate split Markdown bundles for
-  generative AI handoff. When outputDir is omitted, outputs are written under
-  workplace/miku-text-bundle/<yyyyMMddHHmm>/.
+  Collect text-like files under the input directory and generate split
+  Markdown bundles for generative AI handoff.
 `);
 }
 function printVersion() {
     console.log(CLI_VERSION);
 }
 
-// bundler.js
-const DEFAULT_SOURCE_DIRECTORIES = ["src", "lib", "app", "test", "tests"];
-const DEFAULT_SOURCE_EXTENSIONS = new Set(["ts", "tsx", "js", "jsx", "mjs", "cjs", "java", "cs"]);
-const DEFAULT_ROOT_FILES = ["README.md", "TODO.md"];
-const INDEX_FILE_NAME = "text-bundle-000-index.md";
-const PROMPT_FILE_NAME = "text-bundle-000-prompt.md";
-const DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
-const DEFAULT_ENCODING_OPTIONS = {
-    default: "utf-8",
-    extensions: {},
-};
-function formatTimestamp(date) {
-    const pad = (value) => String(value).padStart(2, "0");
-    return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}`;
-}
-function defaultOutputBase(inputDirectory, now = new Date()) {
-    return join(resolve(inputDirectory), "workplace", "miku-text-bundle", formatTimestamp(now));
-}
-function chooseOutputDirectory(inputDirectory, explicitOutputDirectory, now = new Date()) {
-    if (explicitOutputDirectory) {
-        return resolve(explicitOutputDirectory);
-    }
-    const basePath = defaultOutputBase(inputDirectory, now);
-    if (!statSync(basePath, { throwIfNoEntry: false })) {
-        return basePath;
-    }
-    for (let suffix = 1; suffix < 10000; suffix += 1) {
-        const candidate = `${basePath}-${suffix}`;
-        if (!statSync(candidate, { throwIfNoEntry: false })) {
-            return candidate;
-        }
-    }
-    throw new Error(`Could not choose a unique output directory under ${dirname(basePath)}.`);
-}
-function isRootDotDirectory(relativePath) {
-    const firstSegment = toPosixPath(relativePath).split("/")[0] ?? "";
-    return firstSegment.startsWith(".") && firstSegment.length > 1;
-}
-function relativeInputPath(inputPath, filePath) {
+// discovery.js
+function relativeDiscoveryPath(inputPath, filePath) {
     return toPosixPath(relative(inputPath, filePath));
 }
-function isDefaultSourceFile(filePath) {
-    return DEFAULT_SOURCE_EXTENSIONS.has(getExtension(filePath));
+function createIgnoreStats() {
+    return {
+        directories: 0,
+        files: 0,
+        byDirectory: 0,
+        byExtension: 0,
+        byGitignore: 0,
+        byOutputDirectory: 0,
+    };
 }
-function isHardExcluded(relativePath, gitignorePatterns) {
-    return isRootDotDirectory(relativePath) || matchesGitignore(relativePath, gitignorePatterns);
+function addIgnoredFiles(ignored, count, reason) {
+    ignored.files += count;
+    ignored[reason] += count;
 }
-function readRootGitignore(inputPath) {
-    const gitignorePath = join(inputPath, ".gitignore");
-    if (!statSync(gitignorePath, { throwIfNoEntry: false })?.isFile()) {
-        return [];
+function getEffectiveExcludeExtensions(options) {
+    return new Set((options.excludeExtensions ?? DEFAULT_EXCLUDE_EXTENSIONS).map((extension) => extension.toLowerCase()));
+}
+function getEffectiveExcludeDirectories(options) {
+    return new Set(options.excludeDirectories ?? DEFAULT_EXCLUDE_DIRECTORIES);
+}
+function isExcludedDirectory(relativePath, excludeDirectories) {
+    const normalizedPath = toPosixPath(relativePath).replace(/\/+$/, "");
+    const segments = normalizedPath.split("/").filter((segment) => segment.length > 0);
+    for (const excludedDirectory of excludeDirectories) {
+        if (excludedDirectory.includes("/")) {
+            if (normalizedPath === excludedDirectory || normalizedPath.startsWith(`${excludedDirectory}/`)) {
+                return true;
+            }
+            continue;
+        }
+        if (segments.includes(excludedDirectory)) {
+            return true;
+        }
     }
-    return parseGitignore(readFileSync(gitignorePath, "utf8"));
+    return false;
 }
-function listFilesRecursively(rootPath, startPath) {
+function hasExcludedExtension(filePath, excludeExtensions) {
+    const extension = extname(filePath).toLowerCase();
+    return extension.length > 0 && excludeExtensions.has(extension);
+}
+function isOutputPathInsideInput(inputPath, outputPath) {
+    const outputRelativePath = relativeDiscoveryPath(inputPath, outputPath);
+    return !outputRelativePath.startsWith("../") && outputRelativePath !== ".." && outputRelativePath !== "";
+}
+function isInsideOutputDirectory(inputPath, filePath, outputPath) {
+    if (!isOutputPathInsideInput(inputPath, outputPath)) {
+        return false;
+    }
+    const outputRelativePath = relativeDiscoveryPath(inputPath, outputPath);
+    const fileRelativePath = relativeDiscoveryPath(inputPath, filePath);
+    return fileRelativePath === outputRelativePath || fileRelativePath.startsWith(`${outputRelativePath}/`);
+}
+function countDirectoryTree(startPath) {
+    let directories = 1;
+    let files = 0;
+    for (const entry of readdirSync(startPath, { withFileTypes: true })) {
+        const fullPath = join(startPath, entry.name);
+        if (entry.isDirectory()) {
+            const childCounts = countDirectoryTree(fullPath);
+            directories += childCounts.directories;
+            files += childCounts.files;
+            continue;
+        }
+        if (entry.isFile()) {
+            files += 1;
+        }
+    }
+    return { directories, files };
+}
+function ignoreDirectory(fullPath, ignored, reason) {
+    const counts = countDirectoryTree(fullPath);
+    ignored.directories += counts.directories;
+    addIgnoredFiles(ignored, counts.files, reason);
+}
+function listFilesRecursively(rootPath, startPath, outputPath, excludeDirectories, ignored) {
     const files = [];
     const entries = readdirSync(startPath, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name, "ja"));
     for (const entry of entries) {
         const fullPath = join(startPath, entry.name);
-        const relativePath = relativeInputPath(rootPath, fullPath);
-        if (isRootDotDirectory(relativePath)) {
-            continue;
-        }
+        const relativePath = relativeDiscoveryPath(rootPath, fullPath);
         if (entry.isDirectory()) {
-            files.push(...listFilesRecursively(rootPath, fullPath));
+            if (isInsideOutputDirectory(rootPath, fullPath, outputPath)) {
+                ignoreDirectory(fullPath, ignored, "byOutputDirectory");
+                continue;
+            }
+            if (isExcludedDirectory(relativePath, excludeDirectories)) {
+                ignoreDirectory(fullPath, ignored, "byDirectory");
+                continue;
+            }
+            files.push(...listFilesRecursively(rootPath, fullPath, outputPath, excludeDirectories, ignored));
             continue;
         }
         if (entry.isFile()) {
@@ -525,49 +655,55 @@ function listFilesRecursively(rootPath, startPath) {
     }
     return files;
 }
-function addRootFiles(candidates, inputPath) {
-    for (const rootFile of DEFAULT_ROOT_FILES) {
-        const fullPath = join(inputPath, rootFile);
-        if (statSync(fullPath, { throwIfNoEntry: false })?.isFile()) {
-            candidates.add(fullPath);
-        }
+function shouldCollectCandidate(inputPath, outputPath, filePath, gitignorePatterns, excludeExtensions, ignored) {
+    const relativePath = relativeDiscoveryPath(inputPath, filePath);
+    if (isInsideOutputDirectory(inputPath, filePath, outputPath)) {
+        addIgnoredFiles(ignored, 1, "byOutputDirectory");
+        return false;
     }
-}
-function addDefaultSourceFiles(candidates, inputPath) {
-    for (const sourceDir of DEFAULT_SOURCE_DIRECTORIES) {
-        const fullPath = join(inputPath, sourceDir);
-        if (!statSync(fullPath, { throwIfNoEntry: false })?.isDirectory()) {
-            continue;
-        }
-        for (const filePath of listFilesRecursively(inputPath, fullPath)) {
-            if (isDefaultSourceFile(filePath)) {
-                candidates.add(filePath);
-            }
-        }
+    if (hasExcludedExtension(filePath, excludeExtensions)) {
+        addIgnoredFiles(ignored, 1, "byExtension");
+        return false;
     }
-}
-function addIncludedFiles(candidates, inputPath, includePatterns) {
-    if (includePatterns.length === 0) {
-        return;
+    if (matchesGitignore(relativePath, gitignorePatterns)) {
+        addIgnoredFiles(ignored, 1, "byGitignore");
+        return false;
     }
-    for (const filePath of listFilesRecursively(inputPath, inputPath)) {
-        if (matchesAnyPattern(relativeInputPath(inputPath, filePath), includePatterns)) {
-            candidates.add(filePath);
-        }
+    return true;
+}
+function discoverCandidateFiles(inputPath, outputPath, options, gitignorePatterns) {
+    const excludeExtensions = getEffectiveExcludeExtensions(options);
+    const excludeDirectories = getEffectiveExcludeDirectories(options);
+    const ignored = createIgnoreStats();
+    const candidates = listFilesRecursively(inputPath, inputPath, outputPath, excludeDirectories, ignored);
+    return {
+        files: candidates
+            .filter((filePath) => shouldCollectCandidate(inputPath, outputPath, filePath, gitignorePatterns, excludeExtensions, ignored))
+            .sort((a, b) => relativeDiscoveryPath(inputPath, a).localeCompare(relativeDiscoveryPath(inputPath, b), "ja")),
+        ignored,
+    };
+}
+
+// bundler.js
+const INDEX_FILE_NAME = "text-bundle-000-index.md";
+const PROMPT_FILE_NAME = "text-bundle-000-prompt.md";
+const DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
+const DEFAULT_ENCODING_OPTIONS = {
+    default: "utf-8",
+    extensions: {},
+};
+function chooseOutputDirectory(outputDirectory) {
+    return resolve(outputDirectory);
+}
+function relativeInputPath(inputPath, filePath) {
+    return toPosixPath(relative(inputPath, filePath));
+}
+function readRootGitignore(inputPath) {
+    const gitignorePath = join(inputPath, ".gitignore");
+    if (!statSync(gitignorePath, { throwIfNoEntry: false })?.isFile()) {
+        return [];
     }
-}
-function shouldCollectCandidate(inputPath, filePath, options, gitignorePatterns) {
-    const relativePath = relativeInputPath(inputPath, filePath);
-    return !isHardExcluded(relativePath, gitignorePatterns) && !matchesAnyPattern(relativePath, options.excludePatterns);
-}
-function discoverCandidateFiles(inputPath, options, gitignorePatterns) {
-    const candidates = new Set();
-    addRootFiles(candidates, inputPath);
-    addDefaultSourceFiles(candidates, inputPath);
-    addIncludedFiles(candidates, inputPath, options.includePatterns);
-    return [...candidates]
-        .filter((filePath) => shouldCollectCandidate(inputPath, filePath, options, gitignorePatterns))
-        .sort((a, b) => relativeInputPath(inputPath, a).localeCompare(relativeInputPath(inputPath, b), "ja"));
+    return parseGitignore(readFileSync(gitignorePath, "utf8"));
 }
 function selectEncoding(relativePath, options) {
     const extension = extname(relativePath);
@@ -579,10 +715,7 @@ function decodeText(buffer, encoding) {
         return undefined;
     }
     try {
-        if (encoding === "utf-8") {
-            return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
-        }
-        return iconv.decode(buffer, "shift_jis");
+        return new TextDecoder(encoding, { fatal: true }).decode(buffer);
     }
     catch {
         return undefined;
@@ -628,11 +761,12 @@ function createCollectedFile(filePath, relativePath, content) {
         markers: extractMarkers(relativePath, content),
     };
 }
-function collectFiles(inputPath, options, gitignorePatterns) {
+function collectFiles(inputPath, outputPath, options, gitignorePatterns) {
     const files = [];
     const skipped = [];
     const maxInputFileBytes = options.maxInputFileBytes ?? DEFAULT_MAX_INPUT_FILE_BYTES;
-    for (const filePath of discoverCandidateFiles(inputPath, options, gitignorePatterns)) {
+    const discovered = discoverCandidateFiles(inputPath, outputPath, options, gitignorePatterns);
+    for (const filePath of discovered.files) {
         const relativePath = relativeInputPath(inputPath, filePath);
         const fileStat = statSync(filePath);
         if (fileStat.size > maxInputFileBytes) {
@@ -648,7 +782,7 @@ function collectFiles(inputPath, options, gitignorePatterns) {
         }
         files.push(createCollectedFile(filePath, relativePath, content));
     }
-    return { files, skipped };
+    return { files, skipped, ignored: discovered.ignored };
 }
 function createSingleFileChunk(file) {
     return {
@@ -773,10 +907,16 @@ function writeBundleMarkdownFiles(params) {
     writeFileSync(promptPath, buildPromptMarkdown(parts.map((part) => part.fileName)), "utf8");
     return { indexPath, promptPath, partPaths };
 }
-function printVerboseSummary(files, skipped, parts) {
+function printVerboseSummary(files, skipped, parts, ignored) {
     console.log(`collected=${files.length}`);
     console.log(`skipped=${skipped.length}`);
     console.log(`parts=${parts.length}`);
+    console.log(`ignoredDirectories=${ignored.directories}`);
+    console.log(`ignoredFiles=${ignored.files}`);
+    console.log(`ignoredByDirectory=${ignored.byDirectory}`);
+    console.log(`ignoredByExtension=${ignored.byExtension}`);
+    console.log(`ignoredByGitignore=${ignored.byGitignore}`);
+    console.log(`ignoredByOutputDirectory=${ignored.byOutputDirectory}`);
 }
 function printGeneratedPaths(indexPath, partPaths, promptPath) {
     console.log(`generated: ${indexPath}`);
@@ -786,15 +926,16 @@ function printGeneratedPaths(indexPath, partPaths, promptPath) {
     console.log(`generated: ${promptPath}`);
 }
 function createTextBundle(options, now = new Date()) {
+    void now;
     const inputPath = resolve(options.inputDirectory);
     const inputStat = statSync(inputPath, { throwIfNoEntry: false });
     if (!inputStat?.isDirectory()) {
         throw new Error(`Input directory does not exist: ${inputPath}`);
     }
-    const outputDirectory = chooseOutputDirectory(inputPath, options.outputDirectory, now);
+    const outputDirectory = chooseOutputDirectory(options.outputDirectory);
     mkdirSync(outputDirectory, { recursive: true });
     const gitignorePatterns = readRootGitignore(inputPath);
-    const { files, skipped } = collectFiles(inputPath, options, gitignorePatterns);
+    const { files, skipped, ignored } = collectFiles(inputPath, outputDirectory, options, gitignorePatterns);
     const markers = files.flatMap((file) => file.markers);
     const { parts, warnings } = buildParts(files, options.maxChars);
     const { indexPath, promptPath, partPaths } = writeBundleMarkdownFiles({
@@ -807,7 +948,7 @@ function createTextBundle(options, now = new Date()) {
         warnings,
     });
     if (options.verbose) {
-        printVerboseSummary(files, skipped, parts);
+        printVerboseSummary(files, skipped, parts, ignored);
     }
     printGeneratedPaths(indexPath, partPaths, promptPath);
     return {
@@ -817,6 +958,12 @@ function createTextBundle(options, now = new Date()) {
         partPaths,
         filesCollected: files.length,
         filesSkipped: skipped.length,
+        directoriesIgnored: ignored.directories,
+        filesIgnored: ignored.files,
+        ignoredByDirectory: ignored.byDirectory,
+        ignoredByExtension: ignored.byExtension,
+        ignoredByGitignore: ignored.byGitignore,
+        ignoredByOutputDirectory: ignored.byOutputDirectory,
         partsGenerated: parts.length,
         warnings,
     };
@@ -827,7 +974,7 @@ function main() {
     try {
         const options = parseArgs(process.argv.slice(2));
         const result = createTextBundle(options);
-        console.log(`completed: ${result.partsGenerated} part(s), ${result.filesCollected} file(s) collected`);
+        console.log(`completed: ${result.partsGenerated} part(s), ${result.filesCollected} file(s) collected, ${result.filesSkipped} file(s) skipped, ${result.directoriesIgnored} directories ignored, ${result.filesIgnored} file(s) ignored`);
     }
     catch (error) {
         if (error instanceof HelpRequestedError) {
@@ -852,12 +999,14 @@ export {
   HelpRequestedError,
   VersionRequestedError,
   CLI_VERSION,
+  DEFAULT_EXCLUDE_DIRECTORIES,
+  DEFAULT_EXCLUDE_EXTENSIONS,
   parseArgs,
   printHelp,
   printVersion,
   createTextBundle,
   chooseOutputDirectory,
-  defaultOutputBase,
+  discoverCandidateFiles,
   buildIndexMarkdown,
   buildPartMarkdown,
   buildPromptMarkdown,
