@@ -40,8 +40,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          java_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar"
-          node_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs"
+          java_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar"
+          node_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs"
           test -s "${java_runtime}"
           test -s "${node_runtime}"
           java -jar "${java_runtime}" --version

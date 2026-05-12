@@ -14,8 +14,8 @@ CLI runtime surface for `miku-text-bundle`.
 
 Prefer the bundled runtime artifacts in this repository:
 
-- `skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar`
-- `skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs`
+- `skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar`
+- `skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs`
 
 Check these declared paths and SHA-256 digests before broad workspace
 exploration. Java is the default backend. Use Node.js when Java is unavailable
@@ -27,36 +27,29 @@ List Java examples before Node.js examples so agents see the preferred runtime
 first.
 
 ```bash
-java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar <inputDir> <outputDir>
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs <inputDir> <outputDir>
-```
-
-Named directory options are also supported:
-
-```bash
-java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar --input-directory <dir> --output-directory <dir>
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs --input-directory <dir> --output-directory <dir>
+java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar --input <inputDir> --output <outputDir>
+node skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs --input <inputDir> --output <outputDir>
 ```
 
 Input encoding can be specified when needed:
 
 ```bash
-java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar <inputDir> <outputDir> --encoding shift_jis
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs <inputDir> <outputDir> --encoding-extension ".java=shift_jis"
+java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar --input <inputDir> --output <outputDir> --encoding shift_jis
+node skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs --input <inputDir> --output <outputDir> --encoding-extension ".java=shift_jis"
 ```
 
 Meta commands:
 
 ```bash
-java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.5.3.jar --version
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.5.3.mjs --version
+java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar --version
+node skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs --version
 ```
 
 ## CLI Operation Correspondence
 
 | Agent Skill operation | CLI backend shape | Notes |
 | --- | --- | --- |
-| `bundle` | `<inputDir> <outputDir>` or named directory options | Primary Markdown handoff generation operation. Supports explicit input encoding options such as `--encoding shift_jis`. |
+| `bundle` | `--input <inputDir> --output <outputDir>` | Primary Markdown handoff generation operation. Supports explicit input encoding options such as `--encoding shift_jis`. |
 | `version` | `--version` | Smoke check only. Java output may differ from the artifact file version. |
 | `help` | `--help` | Runtime contract reference. |
 
