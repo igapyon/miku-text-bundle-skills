@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           java_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar"
-          node_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs"
+          node_runtime="skills/miku-text-bundle/runtime/miku-text-bundle-0.8.1.mjs"
           test -s "${java_runtime}"
           test -s "${node_runtime}"
           java -jar "${java_runtime}" --version

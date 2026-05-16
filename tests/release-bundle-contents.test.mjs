@@ -31,8 +31,8 @@ test("release zip contains skill files and excludes development-only files", () 
   assertIncludes(entries, "skills/miku-text-bundle/references/upstream.md");
   assertIncludes(entries, "skills/miku-text-bundle/references/workflow.md");
   assertIncludes(entries, "skills/miku-text-bundle/references/runtime/operations-map.md");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.8.0.tgz");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-0.8.1.mjs");
+  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.8.1.tgz");
   assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar");
   assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.8.0.jar");
 

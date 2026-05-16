@@ -6,9 +6,9 @@ import path from "node:path";
 export const runtimeArtifacts = {
   node: {
     backend: "node",
-    version: "0.8.0",
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs",
-    sha256: "67dd613eb319d6a3bc7844a443fbee31dfaec03d695fbea8e58eadeb1b3fa9f6",
+    version: "0.8.1",
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-0.8.1.mjs",
+    sha256: "75d019015f69cde82ef07a465e27166d0e58e35e1db641d9758d64f429ea47f9",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "node",
       artifactPath,
@@ -42,8 +42,8 @@ export const fallbackRuntimeOrder = ["java", "node"];
 
 export const sourceArtifacts = {
   node: {
-    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.8.0.tgz",
-    sha256: "af7a039c40c6ab5d2b917461a3fcf97ec3b7d2103a21d40e2837c4296bfb3b8c"
+    file: "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.8.1.tgz",
+    sha256: "56be544a8a516e8b25f10ade0e50fbdcaea01705dd5adc66a4b5b4a31eada94b"
   },
   java: {
     file: "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.8.0.jar",

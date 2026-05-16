@@ -3,17 +3,17 @@
 This skill is tied to the upstream main application:
 
 - Repository: <https://github.com/igapyon/miku-text-bundle>
-- Compatibility source: release `v0.8.0`
+- Compatibility source: release `v0.8.1`
 - Runtime artifacts: received
 - Current execution pattern: CLI-backed initial skeleton
 
 The repository URL and release tag are the compatibility anchor for the Node runtime.
 
-- Release: <https://github.com/igapyon/miku-text-bundle/releases/tag/v0.8.0>
-- Asset: `miku-text-bundle-0.8.0.mjs`
-- Asset digest: `sha256:67dd613eb319d6a3bc7844a443fbee31dfaec03d695fbea8e58eadeb1b3fa9f6`
-- Source asset: `miku-text-bundle-sources-0.8.0.tgz`
-- Source asset digest: `sha256:af7a039c40c6ab5d2b917461a3fcf97ec3b7d2103a21d40e2837c4296bfb3b8c`
+- Release: <https://github.com/igapyon/miku-text-bundle/releases/tag/v0.8.1>
+- Asset: `miku-text-bundle-0.8.1.mjs`
+- Asset digest: `sha256:75d019015f69cde82ef07a465e27166d0e58e35e1db641d9758d64f429ea47f9`
+- Source asset: `miku-text-bundle-sources-0.8.1.tgz`
+- Source asset digest: `sha256:56be544a8a516e8b25f10ade0e50fbdcaea01705dd5adc66a4b5b4a31eada94b`
 
 The Java companion runtime is anchored separately.
 
@@ -42,7 +42,7 @@ Both runtime artifacts accept the same basic CLI shape:
 miku-text-bundle --input <dir> --output <dir> [--max-chars 120000] [--max-input-file-bytes 1000000] [--verbose]
 ```
 
-In `v0.8.0`, both runtime artifacts also accept explicit input encoding
+The Node `v0.8.1` and Java `v0.8.0` runtime artifacts also accept explicit input encoding
 options:
 
 ```text
@@ -50,11 +50,11 @@ options:
 --encoding-extension ".java=shift_jis"
 ```
 
-The Node artifact declares CLI version `0.8.0`. The Java artifact responds to `--version` with `miku-text-bundle-java 0.8.0`.
+The Node artifact declares CLI version `0.8.1`. The Java artifact responds to `--version` with `miku-text-bundle-java 0.8.0`.
 
 ## Upstream CLI Contract
 
-The received Node source artifact for `v0.8.0` includes the upstream `README.md`,
+The received Node source artifact for `v0.8.1` includes the upstream `README.md`,
 `TODO.md`, TypeScript source, tests, and design notes. The README and runtime
 `--help` output describe this core behavior:
 
@@ -76,7 +76,7 @@ directory files.
 
 The Java companion artifact is treated as the preferred execution runtime for
 this skill, but the Node artifact remains the compatibility source for upstream
-`miku-text-bundle` release `v0.8.0`.
+`miku-text-bundle` release `v0.8.1`.
 
 ## Remaining Follow-Ups
 
