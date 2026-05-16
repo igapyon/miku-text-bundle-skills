@@ -20,8 +20,8 @@ const requiredFiles = [
   "skills/miku-text-bundle/references/upstream.md",
   "skills/miku-text-bundle/references/workflow.md",
   "skills/miku-text-bundle/references/runtime/operations-map.md",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.8.0.tgz",
+  "skills/miku-text-bundle/runtime/miku-text-bundle-0.8.1.mjs",
+  "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.8.1.tgz",
   "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar",
   "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.8.0.jar",
   "workplace/.gitkeep"

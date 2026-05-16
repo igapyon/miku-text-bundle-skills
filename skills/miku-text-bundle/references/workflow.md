@@ -25,7 +25,7 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.8.0.mjs --input <inputDir> --output <outputDir>
+node skills/miku-text-bundle/runtime/miku-text-bundle-0.8.1.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:

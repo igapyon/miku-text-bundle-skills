@@ -27,7 +27,7 @@ test("documents consistently declare CLI-backed Java-first operation without MCP
 test("documents expected runtime artifact names and generated output roles", () => {
   for (const artifact of [
     "miku-text-bundle-java-0.8.0.jar",
-    "miku-text-bundle-0.8.0.mjs"
+    "miku-text-bundle-0.8.1.mjs"
   ]) {
     const pattern = new RegExp(escapeRegExp(artifact));
     assert.match(docs.readme, pattern);
@@ -52,7 +52,7 @@ test("reference index links to workflow, upstream, and operations map", () => {
 
 test("release workflow verifies declared runtimes and uploads versioned bundle zip", () => {
   assert.match(docs.releaseWorkflow, /miku-text-bundle-java-0\.8\.0\.jar/);
-  assert.match(docs.releaseWorkflow, /miku-text-bundle-0\.8\.0\.mjs/);
+  assert.match(docs.releaseWorkflow, /miku-text-bundle-0\.8\.1\.mjs/);
   assert.match(docs.releaseWorkflow, /npm run build/);
   assert.match(docs.releaseWorkflow, /igapyon-miku-text-bundle-skills-\$\{\{ steps\.release_version\.outputs\.version \}\}\.zip/);
   assert.match(docs.releaseWorkflow, /softprops\/action-gh-release@v2/);

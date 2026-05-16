@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { TextDecoder } from "node:util";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 // markdown.js
 const EXTENSION_LANGUAGES = {
@@ -277,7 +277,7 @@ function normalizePattern(pattern) {
 // cli.js
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
-const CLI_VERSION = "0.8.0";
+const CLI_VERSION = "0.8.1";
 const SUPPORTED_ENCODINGS = new Set(["utf-8", "shift_jis"]);
 const DEFAULT_EXCLUDE_EXTENSIONS = [
     ".7z",
@@ -970,6 +970,17 @@ function createTextBundle(options, now = new Date()) {
 }
 
 // main.js
+function isCliEntrypoint(metaUrl, argvPath) {
+    if (!argvPath) {
+        return false;
+    }
+    try {
+        return realpathSync(fileURLToPath(metaUrl)) === realpathSync(argvPath);
+    }
+    catch {
+        return false;
+    }
+}
 function main() {
     try {
         const options = parseArgs(process.argv.slice(2));
@@ -991,7 +1002,7 @@ function main() {
         process.exit(1);
     }
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isCliEntrypoint(import.meta.url, process.argv[1])) {
     main();
 }
 
