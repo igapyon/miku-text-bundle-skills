@@ -6,7 +6,7 @@ The initial version has no MCP backend. Do not call MCP tools as an automatic fa
 
 ## CLI-Backed Flow
 
-1. Confirm the user explicitly requested `miku-text-bundle` or `miku-text-bundle-skills`.
+1. Confirm the user explicitly requested `igapyon-miku-text-bundle`, `miku-text-bundle`, or `miku-text-bundle-skills`.
 2. Confirm the input directory, output directory, and options.
 3. Check `runtime/` for the declared Node and Java artifacts before looking anywhere else.
 4. Prefer the Java runtime for operations it supports.
@@ -25,13 +25,13 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:
 
 ```sh
-java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar --input <inputDir> --output <outputDir>
 ```
 
 Both runtimes support explicit input encoding options, including

@@ -8,7 +8,7 @@ import test from "node:test";
 import {
   planRuntimeSelection,
   resolveRuntime
-} from "../skills/miku-text-bundle/lib/runtime-artifacts.mjs";
+} from "../skills/igapyon-miku-text-bundle/lib/runtime-artifacts.mjs";
 
 const ROOT = process.cwd();
 const buildScriptPath = path.resolve(ROOT, "scripts/build-skill-bundle.mjs");

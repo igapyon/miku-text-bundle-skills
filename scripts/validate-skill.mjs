@@ -3,27 +3,27 @@ import path from "node:path";
 import {
   allArtifactSpecs,
   resolveArtifact
-} from "../skills/miku-text-bundle/lib/runtime-artifacts.mjs";
+} from "../skills/igapyon-miku-text-bundle/lib/runtime-artifacts.mjs";
 
 const root = process.cwd();
-const skillDir = path.join(root, "skills", "miku-text-bundle");
+const skillDir = path.join(root, "skills", "igapyon-miku-text-bundle");
 const requiredFiles = [
   "README.md",
   "TODO.md",
   "LICENSE",
   ".gitignore",
   ".github/workflows/release-build.yml",
-  "skills/miku-text-bundle/SKILL.md",
-  "skills/miku-text-bundle/agents/openai.yaml",
-  "skills/miku-text-bundle/lib/runtime-artifacts.mjs",
-  "skills/miku-text-bundle/references/INDEX.md",
-  "skills/miku-text-bundle/references/upstream.md",
-  "skills/miku-text-bundle/references/workflow.md",
-  "skills/miku-text-bundle/references/runtime/operations-map.md",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.9.0.tgz",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar",
-  "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.9.0.jar",
+  "skills/igapyon-miku-text-bundle/SKILL.md",
+  "skills/igapyon-miku-text-bundle/agents/openai.yaml",
+  "skills/igapyon-miku-text-bundle/lib/runtime-artifacts.mjs",
+  "skills/igapyon-miku-text-bundle/references/INDEX.md",
+  "skills/igapyon-miku-text-bundle/references/upstream.md",
+  "skills/igapyon-miku-text-bundle/references/workflow.md",
+  "skills/igapyon-miku-text-bundle/references/runtime/operations-map.md",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-0.9.0.tgz",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-0.9.0.jar",
   "workplace/.gitkeep"
 ];
 
@@ -46,7 +46,7 @@ if (frontmatterEnd === -1) {
 }
 
 const frontmatter = skill.slice(4, frontmatterEnd);
-for (const field of ["name: miku-text-bundle", "description:"]) {
+for (const field of ["name: igapyon-miku-text-bundle", "description:"]) {
   if (!frontmatter.includes(field)) {
     throw new Error(`SKILL.md frontmatter is missing ${field}`);
   }
@@ -72,4 +72,4 @@ for (const prefix of requiredDocPrefixes) {
   }
 }
 
-console.log("miku-text-bundle skill skeleton validated.");
+console.log("igapyon-miku-text-bundle skill skeleton validated.");

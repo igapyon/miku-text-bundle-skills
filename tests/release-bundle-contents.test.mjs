@@ -24,17 +24,17 @@ test("release zip contains skill files and excludes development-only files", () 
     encoding: "utf8"
   }).trim().split(/\n/).filter(Boolean);
 
-  assertIncludes(entries, "skills/miku-text-bundle/SKILL.md");
-  assertIncludes(entries, "skills/miku-text-bundle/agents/openai.yaml");
-  assertIncludes(entries, "skills/miku-text-bundle/lib/runtime-artifacts.mjs");
-  assertIncludes(entries, "skills/miku-text-bundle/references/INDEX.md");
-  assertIncludes(entries, "skills/miku-text-bundle/references/upstream.md");
-  assertIncludes(entries, "skills/miku-text-bundle/references/workflow.md");
-  assertIncludes(entries, "skills/miku-text-bundle/references/runtime/operations-map.md");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-sources-0.9.0.tgz");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar");
-  assertIncludes(entries, "skills/miku-text-bundle/runtime/miku-text-bundle-java-sources-0.9.0.jar");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/SKILL.md");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/agents/openai.yaml");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/lib/runtime-artifacts.mjs");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/INDEX.md");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/upstream.md");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/workflow.md");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/runtime/operations-map.md");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-0.9.0.tgz");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-0.9.0.jar");
 
   assert.equal(entries.some((entry) => entry.includes(".DS_Store")), false);
   assert.equal(entries.some((entry) => entry.includes(".gitkeep")), false);
