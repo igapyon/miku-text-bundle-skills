@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import {
   allArtifactSpecs,
   resolveArtifact
-} from "../skills/miku-text-bundle/lib/runtime-artifacts.mjs";
+} from "../skills/igapyon-miku-text-bundle/lib/runtime-artifacts.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,7 +14,7 @@ const repoRoot = path.resolve(__dirname, "..");
 
 const bundleRoot = path.resolve(repoRoot, "bundle/miku-text-bundle-skills");
 const bundleSkillsRoot = path.resolve(bundleRoot, "skills");
-const sourceSkillRoot = path.resolve(repoRoot, "skills/miku-text-bundle");
+const sourceSkillRoot = path.resolve(repoRoot, "skills/igapyon-miku-text-bundle");
 
 main().catch((error) => {
   process.stderr.write(`${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
@@ -22,7 +22,7 @@ main().catch((error) => {
 });
 
 async function main() {
-  ensureSourceExists(sourceSkillRoot, "skills/miku-text-bundle");
+  ensureSourceExists(sourceSkillRoot, "skills/igapyon-miku-text-bundle");
 
   const artifactPaths = [];
   for (const artifact of allArtifactSpecs()) {
@@ -37,7 +37,7 @@ async function main() {
   });
   fs.mkdirSync(bundleSkillsRoot, { recursive: true });
 
-  const bundleSkillRoot = path.resolve(bundleSkillsRoot, "miku-text-bundle");
+  const bundleSkillRoot = path.resolve(bundleSkillsRoot, "igapyon-miku-text-bundle");
   fs.cpSync(sourceSkillRoot, bundleSkillRoot, {
     recursive: true,
     filter: shouldCopyBundleEntry
@@ -47,10 +47,10 @@ async function main() {
     "[build:bundle] generated bundle/miku-text-bundle-skills",
     "[build:bundle] copy this directory's contents under your skill home root",
     "[build:bundle] included:",
-    "  - skills/miku-text-bundle",
+    "  - skills/igapyon-miku-text-bundle",
     ...artifactPaths.map((artifactPath) => {
       const name = path.basename(artifactPath);
-      return `  - skills/miku-text-bundle/runtime/${name}`;
+      return `  - skills/igapyon-miku-text-bundle/runtime/${name}`;
     })
   ].join("\n"));
   process.stdout.write("\n");

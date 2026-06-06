@@ -1,0 +1,7 @@
+interface:
+  display_name: "igapyon-miku-text-bundle"
+  short_description: "Agent workflow adapter for miku-text-bundle."
+  default_prompt: "Use $igapyon-miku-text-bundle to prepare a miku-text-bundle workflow handoff."
+
+policy:
+  allow_implicit_invocation: false

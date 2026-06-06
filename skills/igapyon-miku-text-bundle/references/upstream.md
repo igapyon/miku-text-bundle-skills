@@ -29,7 +29,7 @@ The Java companion runtime is anchored separately.
 Runtime artifacts are expected under:
 
 ```text
-skills/miku-text-bundle/runtime/
+skills/igapyon-miku-text-bundle/runtime/
 ```
 
 Do not search broadly through the workspace for product runtimes before checking this declared runtime directory.
@@ -50,7 +50,7 @@ options:
 --encoding-extension ".java=shift_jis"
 ```
 
-The Node artifact declares CLI version `0.9.0`. The Java artifact responds to `--version` with `miku-text-bundle-java 0.9.0`.
+Both the Node and Java artifacts respond to `--version` with `0.9.0`.
 
 ## Upstream CLI Contract
 

@@ -5,11 +5,11 @@ import test from "node:test";
 const docs = {
   readme: read("README.md"),
   releaseWorkflow: read(".github/workflows/release-build.yml"),
-  skill: read("skills/miku-text-bundle/SKILL.md"),
-  index: read("skills/miku-text-bundle/references/INDEX.md"),
-  workflow: read("skills/miku-text-bundle/references/workflow.md"),
-  upstream: read("skills/miku-text-bundle/references/upstream.md"),
-  operationsMap: read("skills/miku-text-bundle/references/runtime/operations-map.md")
+  skill: read("skills/igapyon-miku-text-bundle/SKILL.md"),
+  index: read("skills/igapyon-miku-text-bundle/references/INDEX.md"),
+  workflow: read("skills/igapyon-miku-text-bundle/references/workflow.md"),
+  upstream: read("skills/igapyon-miku-text-bundle/references/upstream.md"),
+  operationsMap: read("skills/igapyon-miku-text-bundle/references/runtime/operations-map.md")
 };
 
 test("documents consistently declare CLI-backed Java-first operation without MCP fallback", () => {

@@ -1,13 +1,13 @@
 ---
-name: miku-text-bundle
-description: Use only when the user explicitly asks to use miku-text-bundle, miku-text-bundle-skills, or a documented miku-text-bundle Agent Skill workflow. Do not activate for generic text editing, summarization, file bundling, archive creation, or repository maintenance unless the user explicitly names this skill or upstream product.
+name: igapyon-miku-text-bundle
+description: Use only when the user explicitly asks to use igapyon-miku-text-bundle, miku-text-bundle, miku-text-bundle-skills, or a documented miku-text-bundle Agent Skill workflow. Do not activate for generic text editing, summarization, file bundling, archive creation, or repository maintenance unless the user explicitly names this skill or upstream product.
 ---
 
-# miku-text-bundle
+# igapyon-miku-text-bundle
 
 This skill is the Agent Skills workflow adapter for the upstream `miku-text-bundle` main application.
 
-Use it only after the user explicitly names `miku-text-bundle`, `miku-text-bundle-skills`, or asks to apply this skill. The upstream product owns product semantics, supported inputs, outputs, CLI/API behavior, diagnostics, and limitations.
+Use it only after the user explicitly names `igapyon-miku-text-bundle`, `miku-text-bundle`, `miku-text-bundle-skills`, or asks to apply this skill. The upstream product owns product semantics, supported inputs, outputs, CLI/API behavior, diagnostics, and limitations.
 
 ## Current Status
 
