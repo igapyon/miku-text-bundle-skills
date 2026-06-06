@@ -11,7 +11,7 @@ const root = process.cwd();
 const smokeRoot = path.join(root, "workplace", "runtime-smoke-auto");
 const inputDir = path.join(smokeRoot, "input");
 const expectedOutputs = [
-  "text-bundle-000-index.md",
+  "text-bundle-999-index.md",
   "text-bundle-000-prompt.md",
   "text-bundle-001.md"
 ];

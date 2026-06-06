@@ -143,17 +143,17 @@ function buildPromptMarkdown(partFileNames) {
         "",
         "各メッセージを受け取ったら、内容の分析や要約はまだ行わず、`受領しました` とだけ返してください。",
         "",
-        "`END_OF_TEXT_BUNDLE` という完了合図を受け取るまで、最終回答を開始しないでください。",
+        "`text-bundle-999-index.md` を受け取るまで、最終回答を開始しないでください。",
         "",
         "## 読み込み順",
         "",
-        "1. `text-bundle-000-index.md`",
+        "1. `text-bundle-000-prompt.md`",
         ...partFileNames.map((fileName, index) => `${index + 2}. \`${fileName}\``),
-        `${partFileNames.length + 2}. \`END_OF_TEXT_BUNDLE\``,
+        `${partFileNames.length + 2}. \`text-bundle-999-index.md\``,
         "",
         "## 回答ファイル",
         "",
-        "`END_OF_TEXT_BUNDLE` の後に作成する回答は `text-bundle-response.md` として保存する想定です。",
+        "`text-bundle-999-index.md` の後に作成する回答は `text-bundle-response.md` として保存する想定です。",
         "",
         "## 出力形式",
         "",
@@ -273,11 +273,20 @@ function getExtension(pathValue) {
 function normalizePattern(pattern) {
     return toPosixPath(pattern.trim()).replace(/^\.\//, "");
 }
+function compareUtf16CodeUnits(left, right) {
+    if (left < right) {
+        return -1;
+    }
+    if (left > right) {
+        return 1;
+    }
+    return 0;
+}
 
 // cli.js
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
-const CLI_VERSION = "0.8.1";
+const CLI_VERSION = "0.9.0";
 const SUPPORTED_ENCODINGS = new Set(["utf-8", "shift_jis"]);
 const DEFAULT_EXCLUDE_EXTENSIONS = [
     ".7z",
@@ -522,8 +531,8 @@ function parseArgs(argv) {
         maxChars: state.maxChars,
         maxInputFileBytes: state.maxInputFileBytes,
         encoding: state.encoding,
-        excludeExtensions: [...state.excludeExtensions].sort((a, b) => a.localeCompare(b, "ja")),
-        excludeDirectories: [...state.excludeDirectories].sort((a, b) => a.localeCompare(b, "ja")),
+        excludeExtensions: [...state.excludeExtensions].sort(compareUtf16CodeUnits),
+        excludeDirectories: [...state.excludeDirectories].sort(compareUtf16CodeUnits),
         verbose: state.verbose,
     };
 }
@@ -633,7 +642,7 @@ function ignoreDirectory(fullPath, ignored, reason) {
 }
 function listFilesRecursively(rootPath, startPath, outputPath, excludeDirectories, ignored) {
     const files = [];
-    const entries = readdirSync(startPath, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name, "ja"));
+    const entries = readdirSync(startPath, { withFileTypes: true }).sort((a, b) => compareUtf16CodeUnits(a.name, b.name));
     for (const entry of entries) {
         const fullPath = join(startPath, entry.name);
         const relativePath = relativeDiscoveryPath(rootPath, fullPath);
@@ -679,14 +688,15 @@ function discoverCandidateFiles(inputPath, outputPath, options, gitignorePattern
     return {
         files: candidates
             .filter((filePath) => shouldCollectCandidate(inputPath, outputPath, filePath, gitignorePatterns, excludeExtensions, ignored))
-            .sort((a, b) => relativeDiscoveryPath(inputPath, a).localeCompare(relativeDiscoveryPath(inputPath, b), "ja")),
+            .sort((a, b) => compareUtf16CodeUnits(relativeDiscoveryPath(inputPath, a), relativeDiscoveryPath(inputPath, b))),
         ignored,
     };
 }
 
 // bundler.js
-const INDEX_FILE_NAME = "text-bundle-000-index.md";
+const INDEX_FILE_NAME = "text-bundle-999-index.md";
 const PROMPT_FILE_NAME = "text-bundle-000-prompt.md";
+const MAX_BUNDLE_PART_NUMBER = 998;
 const DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
 const DEFAULT_ENCODING_OPTIONS = {
     default: "utf-8",
@@ -840,6 +850,9 @@ function splitOversizedFile(file, maxChars) {
     return createSplitFileChunks(file, splitContentByMaxChars(file.content, maxChars));
 }
 function createBundlePart(partNumber, chunks, charCount) {
+    if (partNumber > MAX_BUNDLE_PART_NUMBER) {
+        throw new Error(`Part count exceeds ${MAX_BUNDLE_PART_NUMBER}; text-bundle-999-index.md is reserved for the final index.`);
+    }
     return {
         fileName: `text-bundle-${String(partNumber).padStart(3, "0")}.md`,
         partNumber,
@@ -918,12 +931,12 @@ function printVerboseSummary(files, skipped, parts, ignored) {
     console.log(`ignoredByGitignore=${ignored.byGitignore}`);
     console.log(`ignoredByOutputDirectory=${ignored.byOutputDirectory}`);
 }
-function printGeneratedPaths(indexPath, partPaths, promptPath) {
-    console.log(`generated: ${indexPath}`);
+function printGeneratedPaths(promptPath, partPaths, indexPath) {
+    console.log(`generated: ${promptPath}`);
     for (const partPath of partPaths) {
         console.log(`generated: ${partPath}`);
     }
-    console.log(`generated: ${promptPath}`);
+    console.log(`generated: ${indexPath}`);
 }
 function createTextBundle(options, now = new Date()) {
     void now;
@@ -950,7 +963,7 @@ function createTextBundle(options, now = new Date()) {
     if (options.verbose) {
         printVerboseSummary(files, skipped, parts, ignored);
     }
-    printGeneratedPaths(indexPath, partPaths, promptPath);
+    printGeneratedPaths(promptPath, partPaths, indexPath);
     return {
         outputDirectory,
         indexPath,
