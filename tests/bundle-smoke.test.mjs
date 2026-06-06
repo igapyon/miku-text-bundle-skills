@@ -52,7 +52,7 @@ test("builds bundle and runs runtime artifacts from isolated install tree", asyn
         cwd: tempRoot,
         encoding: "utf8"
       });
-      assert.equal(fs.existsSync(path.resolve(outputDir, "text-bundle-000-index.md")), true);
+      assert.equal(fs.existsSync(path.resolve(outputDir, "text-bundle-999-index.md")), true);
       assert.equal(fs.existsSync(path.resolve(outputDir, "text-bundle-000-prompt.md")), true);
       assert.equal(fs.existsSync(path.resolve(outputDir, "text-bundle-001.md")), true);
       assert.match(

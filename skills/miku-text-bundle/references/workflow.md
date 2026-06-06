@@ -25,13 +25,13 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/miku-text-bundle/runtime/miku-text-bundle-0.8.1.mjs --input <inputDir> --output <outputDir>
+node skills/miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:
 
 ```sh
-java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.8.0.jar --input <inputDir> --output <outputDir>
+java -jar skills/miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar --input <inputDir> --output <outputDir>
 ```
 
 Both runtimes support explicit input encoding options, including
@@ -40,7 +40,7 @@ Both runtimes support explicit input encoding options, including
 
 The initial smoke check generated:
 
-- `text-bundle-000-index.md`
+- `text-bundle-999-index.md`
 - `text-bundle-001.md`
 - `text-bundle-000-prompt.md`
 
