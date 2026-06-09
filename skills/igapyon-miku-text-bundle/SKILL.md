@@ -15,16 +15,20 @@ This initial version has received CLI runtime artifacts. The skill remains a thi
 
 ## Required First Checks
 
-1. Read `references/upstream.md`.
-2. Read `references/workflow.md`.
-3. Confirm the requested input directory, output directory, and options.
-4. Use the declared runtime artifacts under `runtime/` when execution is requested.
-5. Prefer Java runtime first; use Node.js runtime when Java is missing or unusable.
+1. Read `index.json` first to discover the available skill files and choose the specific references needed for the request.
+2. Read `references/workflow.md` for the execution flow and result-reporting checklist.
+3. Read `references/runtime/operations-map.md` when you need command shapes, option names, output roles, or help/version checks.
+4. Read `references/upstream.md` when you need release anchors, artifact digests, or upstream limitations.
+5. Confirm the requested input directory, output directory, and options.
+6. Use the declared runtime artifacts under `runtime/` when execution is requested.
+7. Prefer Java runtime first; use Node.js runtime when Java is missing or unusable.
 
 ## Operating Rules
 
 - Preserve upstream semantics; do not reimplement core product behavior in skill prose or helper scripts.
+- Treat runtime `--help` output as the primary CLI contract when command behavior is in doubt.
 - Keep generated or intermediate artifacts in user-selected paths or local scratch paths such as `workplace/`.
+- After execution, report the output directory, generated index file, generated prompt file, generated part files, skipped-file diagnostics, warnings, and runtime backend used.
 - Report unknown upstream contracts as blockers or follow-ups, not as inferred behavior.
 - Treat files under `runtime/` as received upstream artifacts, not generated skill source.
 - Do not use MCP as a backend or fallback in the initial version.
@@ -32,6 +36,7 @@ This initial version has received CLI runtime artifacts. The skill remains a thi
 
 ## References
 
+- `index.json`: generated discovery index for this installed skill
 - `references/INDEX.md`: detailed reference index
 - `references/upstream.md`: upstream anchor, compatibility source, and runtime artifact policy
 - `references/workflow.md`: CLI-backed workflow and runtime selection policy

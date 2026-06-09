@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import test from "node:test";
 
 const docs = {
   readme: read("README.md"),
+  mikuSoftReference: read("docs/miku-soft-reference.md"),
   releaseWorkflow: read(".github/workflows/release-build.yml"),
   skill: read("skills/igapyon-miku-text-bundle/SKILL.md"),
+  skillIndexJson: read("skills/igapyon-miku-text-bundle/index.json"),
   index: read("skills/igapyon-miku-text-bundle/references/INDEX.md"),
   workflow: read("skills/igapyon-miku-text-bundle/references/workflow.md"),
   upstream: read("skills/igapyon-miku-text-bundle/references/upstream.md"),
@@ -26,8 +29,8 @@ test("documents consistently declare CLI-backed Java-first operation without MCP
 
 test("documents expected runtime artifact names and generated output roles", () => {
   for (const artifact of [
-    "miku-text-bundle-java-0.9.0.jar",
-    "miku-text-bundle-0.9.0.mjs"
+    "miku-text-bundle-java-1.0.0.jar",
+    "miku-text-bundle-1.0.0.mjs"
   ]) {
     const pattern = new RegExp(escapeRegExp(artifact));
     assert.match(docs.readme, pattern);
@@ -44,15 +47,60 @@ test("documents expected runtime artifact names and generated output roles", () 
   }
 });
 
+test("node and java runtime help text is equivalent", () => {
+  const nodeHelp = execFileSync("node", [
+    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.0.mjs",
+    "--help"
+  ], { encoding: "utf8" }).trimEnd();
+  const javaHelp = execFileSync("java", [
+    "-jar",
+    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.0.jar",
+    "--help"
+  ], { encoding: "utf8" }).trimEnd();
+
+  assert.equal(javaHelp, nodeHelp);
+  assert.match(docs.workflow, /same CLI help text/);
+  assert.match(docs.operationsMap, /Supported option names/);
+});
+
 test("reference index links to workflow, upstream, and operations map", () => {
   assert.match(docs.index, /\[workflow\.md\]\(workflow\.md\)/);
   assert.match(docs.index, /\[upstream\.md\]\(upstream\.md\)/);
   assert.match(docs.index, /\[runtime\/operations-map\.md\]\(runtime\/operations-map\.md\)/);
 });
 
+test("generated skill discovery index covers primary skill files", () => {
+  const indexJson = JSON.parse(docs.skillIndexJson);
+  assert.equal(indexJson.generator, "miku-indexgen");
+  assert.equal(indexJson.title, "igapyon-miku-text-bundle Skill Index");
+  assert.match(docs.skill, /Read `index\.json` first/);
+  assert.match(docs.skill, /runtime `--help` output as the primary CLI contract/);
+
+  const indexedPaths = new Set(indexJson.files.map((file) => file.path));
+  for (const filePath of [
+    "SKILL.md",
+    "agents/openai.yaml",
+    "lib/runtime-artifacts.mjs",
+    "references/INDEX.md",
+    "references/upstream.md",
+    "references/workflow.md",
+    "references/runtime/operations-map.md",
+    "runtime/miku-text-bundle-1.0.0.mjs"
+  ]) {
+    assert.ok(indexedPaths.has(filePath), `missing index entry: ${filePath}`);
+  }
+});
+
+test("repository links to shared miku-soft guidance instead of copying basic documents", () => {
+  assert.match(docs.readme, /\[docs\/miku-soft-reference\.md\]\(docs\/miku-soft-reference\.md\)/);
+  assert.match(docs.mikuSoftReference, /igapyon-miku-soft-developer/);
+  assert.match(docs.mikuSoftReference, /40-agent-skills-workflow\.md/);
+  assert.doesNotMatch(docs.mikuSoftReference, /miku-soft-40-agentskills-design-v\d+\.md/);
+});
+
 test("release workflow verifies declared runtimes and uploads versioned bundle zip", () => {
-  assert.match(docs.releaseWorkflow, /miku-text-bundle-java-0\.9\.0\.jar/);
-  assert.match(docs.releaseWorkflow, /miku-text-bundle-0\.9\.0\.mjs/);
+  assert.match(docs.releaseWorkflow, /miku-text-bundle-java-1\.0\.0\.jar/);
+  assert.match(docs.releaseWorkflow, /miku-text-bundle-1\.0\.0\.mjs/);
   assert.match(docs.releaseWorkflow, /npm run build/);
   assert.match(docs.releaseWorkflow, /igapyon-miku-text-bundle-skills-\$\{\{ steps\.release_version\.outputs\.version \}\}\.zip/);
   assert.match(docs.releaseWorkflow, /softprops\/action-gh-release@v2/);

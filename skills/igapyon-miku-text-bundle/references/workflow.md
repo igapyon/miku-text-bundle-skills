@@ -17,6 +17,22 @@ The initial version has no MCP backend. Do not call MCP tools as an automatic fa
 Supported operations and artifact roles are summarized in
 [runtime/operations-map.md](runtime/operations-map.md).
 
+## Agent Result Checklist
+
+After a successful run, report:
+
+- runtime backend used: `java` or `node`
+- input directory and output directory
+- generated files:
+  - `<prefix>-999-index.md`
+  - `<prefix>-000-prompt.md`
+  - `<prefix>-001.md` through `<prefix>-998.md` as present
+- collected file count and part count from runtime stdout
+- skipped-file diagnostics and warnings recorded in the index file
+
+If execution fails, report the backend attempted, exit status, stderr summary,
+and whether fallback to Node.js was attempted.
+
 ## Runtime Commands
 
 Runtime lookup and digest verification are defined in `lib/runtime-artifacts.mjs` under this skill directory.
@@ -25,18 +41,22 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-0.9.0.mjs --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.0.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:
 
 ```sh
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-0.9.0.jar --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.0.jar --input <inputDir> --output <outputDir>
 ```
 
 Both runtimes support explicit input encoding options, including
 `--encoding shift_jis` and extension-specific rules such as
 `--encoding-extension ".java=shift_jis"`.
+
+Both runtimes expose the same CLI help text for v1.0.0 except for an
+insignificant trailing newline difference. Treat `--help` as the runtime
+contract when option behavior needs confirmation.
 
 The initial smoke check generated:
 

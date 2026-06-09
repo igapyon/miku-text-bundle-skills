@@ -8,14 +8,19 @@ than `SKILL.md`.
 - [workflow.md](workflow.md)
   - CLI-backed flow
   - Java-first runtime order
+  - execution checklist
   - generated output files
+  - result-reporting checklist
 
 ## Runtime
 
 - [runtime/operations-map.md](runtime/operations-map.md)
   - operation list
+  - supported options
+  - generated artifact names
   - runtime artifact roles
   - Java and Node.js command shapes
+  - help/version parity notes
 
 ## Upstream
 

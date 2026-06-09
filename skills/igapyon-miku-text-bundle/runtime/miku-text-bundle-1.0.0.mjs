@@ -135,7 +135,18 @@ function buildIndexMarkdown(params) {
     ];
     return markdown(lines);
 }
-function buildPromptMarkdown(partFileNames) {
+function normalizePromptMarkdownParams(params) {
+    if (Array.isArray(params)) {
+        return {
+            promptFileName: "text-bundle-000-prompt.md",
+            partFileNames: params,
+            indexFileName: "text-bundle-999-index.md",
+        };
+    }
+    return params;
+}
+function buildPromptMarkdown(params) {
+    const { promptFileName, partFileNames, indexFileName } = normalizePromptMarkdownParams(params);
     const lines = [
         "# Text Bundle Prompt",
         "",
@@ -143,17 +154,17 @@ function buildPromptMarkdown(partFileNames) {
         "",
         "各メッセージを受け取ったら、内容の分析や要約はまだ行わず、`受領しました` とだけ返してください。",
         "",
-        "`text-bundle-999-index.md` を受け取るまで、最終回答を開始しないでください。",
+        `\`${indexFileName}\` を受け取るまで、最終回答を開始しないでください。`,
         "",
         "## 読み込み順",
         "",
-        "1. `text-bundle-000-prompt.md`",
+        `1. \`${promptFileName}\``,
         ...partFileNames.map((fileName, index) => `${index + 2}. \`${fileName}\``),
-        `${partFileNames.length + 2}. \`text-bundle-999-index.md\``,
+        `${partFileNames.length + 2}. \`${indexFileName}\``,
         "",
         "## 回答ファイル",
         "",
-        "`text-bundle-999-index.md` の後に作成する回答は `text-bundle-response.md` として保存する想定です。",
+        `\`${indexFileName}\` の後に作成する回答は \`text-bundle-response.md\` として保存する想定です。`,
         "",
         "## 出力形式",
         "",
@@ -286,7 +297,8 @@ function compareUtf16CodeUnits(left, right) {
 // cli.js
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
-const CLI_VERSION = "0.9.0";
+const CLI_DEFAULT_FILENAME_PREFIX = "text-bundle";
+const CLI_VERSION = "1.0.0";
 const SUPPORTED_ENCODINGS = new Set(["utf-8", "shift_jis"]);
 const DEFAULT_EXCLUDE_EXTENSIONS = [
     ".7z",
@@ -385,6 +397,16 @@ function parsePositiveInteger(value, optionName) {
     }
     return parsed;
 }
+function parseFilenamePrefix(value) {
+    const prefix = value.trim();
+    if (prefix.length === 0) {
+        throw new Error("--filename-prefix must not be empty.");
+    }
+    if (!/^[A-Za-z0-9._-]+$/.test(prefix)) {
+        throw new Error("--filename-prefix must contain only ASCII letters, digits, dots, underscores, and hyphens.");
+    }
+    return prefix;
+}
 function parseSupportedEncoding(value, optionName) {
     if (SUPPORTED_ENCODINGS.has(value)) {
         return value;
@@ -427,6 +449,7 @@ function parseEncodingExtensions(value) {
 }
 function createParseState() {
     return {
+        filenamePrefix: CLI_DEFAULT_FILENAME_PREFIX,
         maxChars: CLI_DEFAULT_MAX_CHARS,
         maxInputFileBytes: CLI_DEFAULT_MAX_INPUT_FILE_BYTES,
         encoding: {
@@ -452,6 +475,10 @@ function consumeOption(argv, index, state) {
     }
     if (arg === "--output") {
         state.outputDirectory = readRequiredOptionValue(argv, index, "--output");
+        return index + 1;
+    }
+    if (arg === "--filename-prefix") {
+        state.filenamePrefix = parseFilenamePrefix(readRequiredOptionValue(argv, index, "--filename-prefix"));
         return index + 1;
     }
     if (arg === "--max-chars") {
@@ -528,6 +555,7 @@ function parseArgs(argv) {
     return {
         inputDirectory,
         outputDirectory,
+        filenamePrefix: state.filenamePrefix,
         maxChars: state.maxChars,
         maxInputFileBytes: state.maxInputFileBytes,
         encoding: state.encoding,
@@ -542,20 +570,51 @@ function printHelp() {
   miku-text-bundle --help
   miku-text-bundle --version
 
+Description:
+  Scan local text-like files under --input and generate split Markdown bundle
+  files under --output for generative AI handoff. No network access is used.
+
+Default behavior:
+  Required: --input <dir>, --output <dir>
+  Defaults: --filename-prefix text-bundle, --max-chars 120000,
+  --max-input-file-bytes 1000000, --encoding utf-8.
+  Input paths are ordered by POSIX relative path using UTF-16 code units.
+
+Inputs:
+  Reads regular files under --input. Skips known binary extensions, default
+  excluded directories such as .git, node_modules, dist, coverage, target,
+  workplace, and files ignored by the input root .gitignore.
+
+Generated artifacts:
+  <prefix>-000-prompt.md
+  <prefix>-001.md ... <prefix>-998.md
+  <prefix>-999-index.md
+  These files are generated artifacts and may be regenerated.
+
+Output and overwrite behavior:
+  Creates --output when missing. Existing generated files with the same names
+  are overwritten. Terminal stdout is progress/completion text, not a stable
+  machine-readable API. The Markdown files are the stable handoff artifacts.
+
+Diagnostics and exit codes:
+  Skipped readable-candidate files and split warnings are recorded in
+  <prefix>-999-index.md. Invalid usage or processing errors are printed to
+  stderr. Exit code 0 means success/help/version; exit code 1 means failure.
+
 Options:
-  --max-chars <number>
-  --max-input-file-bytes <number>
-  --encoding utf-8|shift_jis
+  --filename-prefix <prefix>       File basename prefix. Allowed: A-Z a-z 0-9 . _ -
+  --max-chars <number>             Max approximate characters per part.
+  --max-input-file-bytes <number>  Max bytes read from one input file.
+  --encoding utf-8|shift_jis       Default input file encoding.
   --encoding-extension ".java=shift_jis"
   --add-exclude-extension ".ext"
   --remove-exclude-extension ".ext"
   --add-exclude-directory "dir"
   --remove-exclude-directory "dir"
-  --verbose
+  --verbose                        Print ignored-file count details.
 
-Description:
-  Collect text-like files under the input directory and generate split
-  Markdown bundles for generative AI handoff.
+Example:
+  miku-text-bundle --input . --output out --filename-prefix my-repo-text-bundle
 `);
 }
 function printVersion() {
@@ -694,14 +753,23 @@ function discoverCandidateFiles(inputPath, outputPath, options, gitignorePattern
 }
 
 // bundler.js
-const INDEX_FILE_NAME = "text-bundle-999-index.md";
-const PROMPT_FILE_NAME = "text-bundle-000-prompt.md";
 const MAX_BUNDLE_PART_NUMBER = 998;
+const DEFAULT_FILENAME_PREFIX = "text-bundle";
 const DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
 const DEFAULT_ENCODING_OPTIONS = {
     default: "utf-8",
     extensions: {},
 };
+function normalizeFilenamePrefix(value) {
+    const prefix = value.trim();
+    if (prefix.length === 0) {
+        throw new Error("filenamePrefix must not be empty.");
+    }
+    if (!/^[A-Za-z0-9._-]+$/.test(prefix)) {
+        throw new Error("filenamePrefix must contain only ASCII letters, digits, dots, underscores, and hyphens.");
+    }
+    return prefix;
+}
 function chooseOutputDirectory(outputDirectory) {
     return resolve(outputDirectory);
 }
@@ -849,12 +917,21 @@ function splitOversizedFile(file, maxChars) {
     }
     return createSplitFileChunks(file, splitContentByMaxChars(file.content, maxChars));
 }
-function createBundlePart(partNumber, chunks, charCount) {
+function bundlePromptFileName(filenamePrefix) {
+    return `${filenamePrefix}-000-prompt.md`;
+}
+function bundlePartFileName(filenamePrefix, partNumber) {
+    return `${filenamePrefix}-${String(partNumber).padStart(3, "0")}.md`;
+}
+function bundleIndexFileName(filenamePrefix) {
+    return `${filenamePrefix}-999-index.md`;
+}
+function createBundlePart(filenamePrefix, partNumber, chunks, charCount) {
     if (partNumber > MAX_BUNDLE_PART_NUMBER) {
-        throw new Error(`Part count exceeds ${MAX_BUNDLE_PART_NUMBER}; text-bundle-999-index.md is reserved for the final index.`);
+        throw new Error(`Part count exceeds ${MAX_BUNDLE_PART_NUMBER}; ${bundleIndexFileName(filenamePrefix)} is reserved for the final index.`);
     }
     return {
-        fileName: `text-bundle-${String(partNumber).padStart(3, "0")}.md`,
+        fileName: bundlePartFileName(filenamePrefix, partNumber),
         partNumber,
         chunks,
         charCount,
@@ -877,7 +954,7 @@ function buildChunks(files, maxChars) {
     });
     return { chunks, warnings };
 }
-function buildParts(files, maxChars) {
+function buildParts(files, maxChars, filenamePrefix) {
     const { chunks, warnings } = buildChunks(files, maxChars);
     const parts = [];
     let currentChunks = [];
@@ -886,7 +963,7 @@ function buildParts(files, maxChars) {
         if (currentChunks.length === 0) {
             return;
         }
-        parts.push(createBundlePart(parts.length + 1, currentChunks, currentChars));
+        parts.push(createBundlePart(filenamePrefix, parts.length + 1, currentChunks, currentChars));
         currentChunks = [];
         currentChars = 0;
     };
@@ -901,9 +978,11 @@ function buildParts(files, maxChars) {
     return { parts, warnings };
 }
 function writeBundleMarkdownFiles(params) {
-    const { outputDirectory, inputDirectory, parts, collectedFiles, skippedFiles, markers, warnings } = params;
-    const indexPath = join(outputDirectory, INDEX_FILE_NAME);
-    const promptPath = join(outputDirectory, PROMPT_FILE_NAME);
+    const { outputDirectory, filenamePrefix, inputDirectory, parts, collectedFiles, skippedFiles, markers, warnings } = params;
+    const indexFileName = bundleIndexFileName(filenamePrefix);
+    const promptFileName = bundlePromptFileName(filenamePrefix);
+    const indexPath = join(outputDirectory, indexFileName);
+    const promptPath = join(outputDirectory, promptFileName);
     const partPaths = parts.map((part) => join(outputDirectory, part.fileName));
     for (const part of parts) {
         writeFileSync(join(outputDirectory, part.fileName), buildPartMarkdown(part), "utf8");
@@ -917,7 +996,11 @@ function writeBundleMarkdownFiles(params) {
         markers,
         warnings,
     }), "utf8");
-    writeFileSync(promptPath, buildPromptMarkdown(parts.map((part) => part.fileName)), "utf8");
+    writeFileSync(promptPath, buildPromptMarkdown({
+        promptFileName,
+        partFileNames: parts.map((part) => part.fileName),
+        indexFileName,
+    }), "utf8");
     return { indexPath, promptPath, partPaths };
 }
 function printVerboseSummary(files, skipped, parts, ignored) {
@@ -946,13 +1029,15 @@ function createTextBundle(options, now = new Date()) {
         throw new Error(`Input directory does not exist: ${inputPath}`);
     }
     const outputDirectory = chooseOutputDirectory(options.outputDirectory);
+    const filenamePrefix = normalizeFilenamePrefix(options.filenamePrefix ?? DEFAULT_FILENAME_PREFIX);
     mkdirSync(outputDirectory, { recursive: true });
     const gitignorePatterns = readRootGitignore(inputPath);
     const { files, skipped, ignored } = collectFiles(inputPath, outputDirectory, options, gitignorePatterns);
     const markers = files.flatMap((file) => file.markers);
-    const { parts, warnings } = buildParts(files, options.maxChars);
+    const { parts, warnings } = buildParts(files, options.maxChars, filenamePrefix);
     const { indexPath, promptPath, partPaths } = writeBundleMarkdownFiles({
         outputDirectory,
+        filenamePrefix,
         inputDirectory: inputPath,
         parts,
         collectedFiles: files,
