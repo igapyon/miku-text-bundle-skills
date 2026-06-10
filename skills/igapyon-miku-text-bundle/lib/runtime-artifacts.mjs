@@ -6,9 +6,9 @@ import path from "node:path";
 export const runtimeArtifacts = {
   node: {
     backend: "node",
-    version: "1.0.0",
-    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.0.mjs",
-    sha256: "32b68c9a5b9b8f04949ab4ad57c5b4b6787ac3e2287ce82301fbc976a9ca01ba",
+    version: "1.0.1",
+    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs",
+    sha256: "c5ce6034b7f50f1977a3d0523ed1ec93748a1e7100af69596070d5b83c233d59",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "node",
       artifactPath,
@@ -21,9 +21,9 @@ export const runtimeArtifacts = {
   },
   java: {
     backend: "java",
-    version: "1.0.0",
-    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.0.jar",
-    sha256: "b64f2df035d731f79800998b382367da679a918d91048f35ef633a0c66c74769",
+    version: "1.0.1",
+    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar",
+    sha256: "66d654cf1452e77deddd7893be288f16d4e0408cac57489b8a6c0ae98898c61f",
     command: (artifactPath, inputDir, outputDir, options = []) => [
       "java",
       "-jar",
@@ -42,12 +42,12 @@ export const fallbackRuntimeOrder = ["java", "node"];
 
 export const sourceArtifacts = {
   node: {
-    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-1.0.0.tgz",
-    sha256: "73bc2c70ea69b73845aecdce829f6de119dc3e0fd861c4f022237852e9abbd84"
+    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-1.0.1.tgz",
+    sha256: "bd3d0d5ca24f146160d146aba24e6f63b6d72da821bd6a3310812733077d2473"
   },
   java: {
-    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-1.0.0.jar",
-    sha256: "e986a417c7a3ad35707cf9b7338eff3dc23aca3f5f6bc53947674f73e571c390"
+    file: "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-1.0.1.jar",
+    sha256: "3fdc1e3b57cdfddd429d997d3b0f4ba58100aeb62333a66185ee7eaaf3657e4c"
   }
 };
 

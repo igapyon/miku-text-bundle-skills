@@ -23,6 +23,7 @@ After a successful run, report:
 
 - runtime backend used: `java` or `node`
 - input directory and output directory
+- handoff guidance: recommend pasting `<prefix>-000-prompt.md` into the AI Web UI message body first for stability; upload part files and `<prefix>-999-index.md` as attachments when supported
 - generated files:
   - `<prefix>-999-index.md`
   - `<prefix>-000-prompt.md`
@@ -41,27 +42,32 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.0.mjs --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:
 
 ```sh
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.0.jar --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar --input <inputDir> --output <outputDir>
 ```
 
 Both runtimes support explicit input encoding options, including
 `--encoding shift_jis` and extension-specific rules such as
 `--encoding-extension ".java=shift_jis"`.
 
-Both runtimes expose the same CLI help text for v1.0.0 except for an
-insignificant trailing newline difference. Treat `--help` as the runtime
-contract when option behavior needs confirmation.
+Both runtimes expose the same CLI help text for v1.0.1. Treat `--help` as the
+runtime contract when option behavior needs confirmation.
 
 The initial smoke check generated:
 
 - `text-bundle-999-index.md`
 - `text-bundle-001.md`
 - `text-bundle-000-prompt.md`
+
+For Web UI handoff, it is recommended to treat
+`text-bundle-000-prompt.md` as prompt text to paste into the first message body.
+This is a stability recommendation, not a strict requirement. Treat
+`text-bundle-001.md` and later part files, plus `text-bundle-999-index.md`, as
+attachment-friendly bundle files.
 
 Keep helper code thin. The skill may locate runtimes, build command arguments, run the upstream CLI, and format diagnostics, but product behavior belongs upstream.

@@ -11,6 +11,6 @@
   {"name":"operations-map.md","path":"references/runtime/operations-map.md","ext":"md","dir":"references/runtime","size":3405,"summary":"Operations Map"},
   {"name":"upstream.md","path":"references/upstream.md","ext":"md","dir":"references","size":3768,"summary":"Upstream Anchor"},
   {"name":"workflow.md","path":"references/workflow.md","ext":"md","dir":"references","size":2604,"summary":"miku-text-bundle Agent Workflow"},
-  {"name":"miku-text-bundle-1.0.0.mjs","path":"runtime/miku-text-bundle-1.0.0.mjs","ext":"mjs","dir":"runtime","size":40060}
+  {"name":"miku-text-bundle-1.0.1.mjs","path":"runtime/miku-text-bundle-1.0.1.mjs","ext":"mjs","dir":"runtime","size":42234}
  ]
 }

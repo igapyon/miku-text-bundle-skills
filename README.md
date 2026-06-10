@@ -11,7 +11,7 @@ This repository is the `-skills` companion repository for:
 - Backend policy: `cli-preferred`, with no MCP backend in the initial version
 - Runtime selection: Java first, Node.js fallback when the Java runtime is missing or unusable
 
-The upstream main application compatibility source is `miku-text-bundle` release `v1.0.0`. The Java companion runtime source is `miku-text-bundle-java` release `v1.0.0`. Keep product semantics in the upstream applications and use this repository as the agent-facing workflow adapter.
+The upstream main application compatibility source is `miku-text-bundle` release `v1.0.1`. The Java companion runtime source is `miku-text-bundle-java` release `v1.0.1`. Keep product semantics in the upstream applications and use this repository as the agent-facing workflow adapter.
 
 ## Repository Layout
 
@@ -46,7 +46,7 @@ npm run build
 ```
 
 The generated release zip keeps the repository package name, such as
-`igapyon-miku-text-bundle-skills-1.0.0.zip`. Inside the extracted bundle, install
+`igapyon-miku-text-bundle-skills-1.0.1.zip`. Inside the extracted bundle, install
 the `skills/igapyon-miku-text-bundle/` directory into the target Agent Skills
 home.
 
@@ -62,16 +62,26 @@ GitHub repository creation, pushes, releases, tags, and release asset uploads ar
 
 This initial repository has no MCP backend. Do not call or configure MCP as an automatic fallback for `miku-text-bundle` operations.
 
+## Generated Bundle Handoff
+
+When handing a generated bundle to a generative AI Web UI, it is recommended to
+paste `<prefix>-000-prompt.md` as the first message body instead of uploading it
+as an attachment. This is a recommended stability practice, not a strict
+requirement; depending on the target UI and workflow, the prompt file may still
+be uploaded as an attachment. The part files (`<prefix>-001.md` and later) and
+the final index file (`<prefix>-999-index.md`) may be uploaded as attachments
+when the target UI supports file upload.
+
 ## Runtime Artifacts
 
 The following received artifacts are expected under `skills/igapyon-miku-text-bundle/runtime/`:
 
-- `miku-text-bundle-1.0.0.mjs`
-- `miku-text-bundle-sources-1.0.0.tgz`
-- `miku-text-bundle-java-1.0.0.jar`
-- `miku-text-bundle-java-sources-1.0.0.jar`
+- `miku-text-bundle-1.0.1.mjs`
+- `miku-text-bundle-sources-1.0.1.tgz`
+- `miku-text-bundle-java-1.0.1.jar`
+- `miku-text-bundle-java-sources-1.0.1.jar`
 
-The Node `1.0.0` runtime and Java `1.0.0` runtime support explicit input encoding options, including
+The Node `1.0.1` runtime and Java `1.0.1` runtime support explicit input encoding options, including
 `--encoding shift_jis` and extension-specific rules such as
 `--encoding-extension ".java=shift_jis"`.
 
