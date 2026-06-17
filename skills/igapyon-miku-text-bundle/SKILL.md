@@ -28,7 +28,7 @@ This initial version has received CLI runtime artifacts. The skill remains a thi
 - Preserve upstream semantics; do not reimplement core product behavior in skill prose or helper scripts.
 - Treat runtime `--help` output as the primary CLI contract when command behavior is in doubt.
 - Keep generated or intermediate artifacts in user-selected paths or local scratch paths such as `workplace/`.
-- After execution, report the output directory, generated index file, generated prompt file, generated part files, skipped-file diagnostics, warnings, and runtime backend used.
+- After execution, report the output directory, generated part files, the prompt-bearing first part, the terminal index-bearing final part, skipped-file diagnostics, warnings, and runtime backend used.
 - Report unknown upstream contracts as blockers or follow-ups, not as inferred behavior.
 - Treat files under `runtime/` as received upstream artifacts, not generated skill source.
 - Do not use MCP as a backend or fallback in the initial version.

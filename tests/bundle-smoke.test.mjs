@@ -52,13 +52,13 @@ test("builds bundle and runs runtime artifacts from isolated install tree", asyn
         cwd: tempRoot,
         encoding: "utf8"
       });
-      assert.equal(fs.existsSync(path.resolve(outputDir, "text-bundle-999-index.md")), true);
-      assert.equal(fs.existsSync(path.resolve(outputDir, "text-bundle-000-prompt.md")), true);
       assert.equal(fs.existsSync(path.resolve(outputDir, "text-bundle-001.md")), true);
-      assert.match(
-        fs.readFileSync(path.resolve(outputDir, "text-bundle-001.md"), "utf8"),
-        /hello bundled skill/
-      );
+      const bundle = fs.readFileSync(path.resolve(outputDir, "text-bundle-001.md"), "utf8");
+      assert.match(bundle, /hello bundled skill/);
+      assert.match(bundle, /prompt: true/);
+      assert.match(bundle, /terminal: true/);
+      assert.match(bundle, /# Text Bundle Prompt/);
+      assert.match(bundle, /# Text Bundle Index/);
     }
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });

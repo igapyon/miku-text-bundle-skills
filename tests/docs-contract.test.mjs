@@ -29,8 +29,8 @@ test("documents consistently declare CLI-backed Java-first operation without MCP
 
 test("documents expected runtime artifact names and generated output roles", () => {
   for (const artifact of [
-    "miku-text-bundle-java-1.0.1.jar",
-    "miku-text-bundle-1.0.1.mjs"
+    "miku-text-bundle-java-1.1.1.jar",
+    "miku-text-bundle-1.1.1.2.mjs"
   ]) {
     const pattern = new RegExp(escapeRegExp(artifact));
     assert.match(docs.readme, pattern);
@@ -39,27 +39,39 @@ test("documents expected runtime artifact names and generated output roles", () 
   }
 
   for (const role of [
-    "bundle_index_markdown",
     "bundle_part_markdown",
-    "bundle_prompt_markdown"
+    "bundle_prompt_markdown",
+    "bundle_terminal_index_markdown"
   ]) {
     assert.match(docs.operationsMap, new RegExp(role));
   }
 });
 
-test("node and java runtime help text is equivalent", () => {
+test("node and java runtime help text is identical", () => {
   const nodeHelp = execFileSync("node", [
-    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs",
+    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.1.1.2.mjs",
     "--help"
   ], { encoding: "utf8" }).trimEnd();
   const javaHelp = execFileSync("java", [
     "-jar",
-    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar",
+    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.1.1.jar",
     "--help"
   ], { encoding: "utf8" }).trimEnd();
 
   assert.equal(javaHelp, nodeHelp);
-  assert.match(docs.workflow, /same CLI help text/);
+
+  for (const option of [
+    "--input <dir>",
+    "--output <dir>",
+    "--encoding utf-8|shift_jis",
+    "--encoding-extension",
+    "--filename-prefix <prefix>",
+    "--version"
+  ]) {
+    assert.match(javaHelp, new RegExp(escapeRegExp(option)));
+    assert.match(nodeHelp, new RegExp(escapeRegExp(option)));
+  }
+  assert.match(docs.workflow, /identical `--help` output/);
   assert.match(docs.operationsMap, /Supported option names/);
 });
 
@@ -85,7 +97,7 @@ test("generated skill discovery index covers primary skill files", () => {
     "references/upstream.md",
     "references/workflow.md",
     "references/runtime/operations-map.md",
-    "runtime/miku-text-bundle-1.0.1.mjs"
+    "runtime/miku-text-bundle-1.1.1.2.mjs"
   ]) {
     assert.ok(indexedPaths.has(filePath), `missing index entry: ${filePath}`);
   }
@@ -99,8 +111,8 @@ test("repository links to shared miku-soft guidance instead of copying basic doc
 });
 
 test("release workflow verifies declared runtimes and uploads versioned bundle zip", () => {
-  assert.match(docs.releaseWorkflow, /miku-text-bundle-java-1\.0\.1\.jar/);
-  assert.match(docs.releaseWorkflow, /miku-text-bundle-1\.0\.1\.mjs/);
+  assert.match(docs.releaseWorkflow, /miku-text-bundle-java-1\.1\.1\.jar/);
+  assert.match(docs.releaseWorkflow, /miku-text-bundle-1\.1\.1\.2\.mjs/);
   assert.match(docs.releaseWorkflow, /npm run build/);
   assert.match(docs.releaseWorkflow, /igapyon-miku-text-bundle-skills-\$\{\{ steps\.release_version\.outputs\.version \}\}\.zip/);
   assert.match(docs.releaseWorkflow, /softprops\/action-gh-release@v2/);

@@ -11,8 +11,6 @@ const root = process.cwd();
 const smokeRoot = path.join(root, "workplace", "runtime-smoke-auto");
 const inputDir = path.join(smokeRoot, "input");
 const expectedOutputs = [
-  "text-bundle-999-index.md",
-  "text-bundle-000-prompt.md",
   "text-bundle-001.md"
 ];
 
@@ -68,6 +66,12 @@ async function runBackend(backend) {
   const bundle = await readFile(path.join(outputDir, "text-bundle-001.md"), "utf8");
   if (!bundle.includes("hello miku-text-bundle")) {
     throw new Error(`${backend} smoke output did not include fixture content.`);
+  }
+  if (!bundle.includes("prompt: true") || !bundle.includes("terminal: true")) {
+    throw new Error(`${backend} smoke output did not include prompt and terminal role metadata.`);
+  }
+  if (!bundle.includes("# Text Bundle Prompt") || !bundle.includes("# Text Bundle Index")) {
+    throw new Error(`${backend} smoke output did not include prompt and index sections.`);
   }
   if (!result.stdout.includes("completed: 1 part(s), 1 file(s) collected")) {
     throw new Error(`${backend} smoke stdout did not include completion summary.`);
