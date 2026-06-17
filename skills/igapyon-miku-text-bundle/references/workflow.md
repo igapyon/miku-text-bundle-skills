@@ -23,11 +23,10 @@ After a successful run, report:
 
 - runtime backend used: `java` or `node`
 - input directory and output directory
-- handoff guidance: recommend pasting `<prefix>-000-prompt.md` into the AI Web UI message body first for stability; upload part files and `<prefix>-999-index.md` as attachments when supported
+- handoff guidance: send part files in filename order, starting with `<prefix>-001.md`; the first part embeds the prompt instructions and the final part embeds the index
 - generated files:
-  - `<prefix>-999-index.md`
-  - `<prefix>-000-prompt.md`
   - `<prefix>-001.md` through `<prefix>-998.md` as present
+  - `<prefix>-999.md` when enough parts are generated
 - collected file count and part count from runtime stdout
 - skipped-file diagnostics and warnings recorded in the index file
 
@@ -42,32 +41,29 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.1.1.2.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:
 
 ```sh
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.1.1.jar --input <inputDir> --output <outputDir>
 ```
 
 Both runtimes support explicit input encoding options, including
 `--encoding shift_jis` and extension-specific rules such as
 `--encoding-extension ".java=shift_jis"`.
 
-Both runtimes expose the same CLI help text for v1.0.1. Treat `--help` as the
-runtime contract when option behavior needs confirmation.
+Both runtimes expose identical `--help` output for CLI version `1.1.1`.
+Treat `--help` as the runtime contract when option behavior needs confirmation.
 
 The initial smoke check generated:
 
-- `text-bundle-999-index.md`
 - `text-bundle-001.md`
-- `text-bundle-000-prompt.md`
 
 For Web UI handoff, it is recommended to treat
-`text-bundle-000-prompt.md` as prompt text to paste into the first message body.
-This is a stability recommendation, not a strict requirement. Treat
-`text-bundle-001.md` and later part files, plus `text-bundle-999-index.md`, as
-attachment-friendly bundle files.
+`text-bundle-001.md` as the first handoff file. It contains the prompt section
+when it is the first part, and the final part contains the index section. In a
+one-part bundle, `text-bundle-001.md` contains both sections.
 
 Keep helper code thin. The skill may locate runtimes, build command arguments, run the upstream CLI, and format diagnostics, but product behavior belongs upstream.

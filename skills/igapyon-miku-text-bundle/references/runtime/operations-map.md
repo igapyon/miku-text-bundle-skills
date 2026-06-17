@@ -10,14 +10,14 @@ CLI runtime surface for `miku-text-bundle`.
 - `version`: check that a runtime artifact starts and identifies itself
 - `help`: read the runtime CLI contract
 
-For v1.0.1, Node.js and Java help text is equivalent.
+For CLI version `1.1.1`, Node.js and Java expose identical `--help` output.
 
 ## Runtime Search Order
 
 Prefer the bundled runtime artifacts in this repository:
 
-- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar`
-- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs`
+- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.1.1.jar`
+- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.1.1.2.mjs`
 
 Check these declared paths and SHA-256 digests before broad workspace
 exploration. Java is the default backend. Use Node.js when Java is unavailable
@@ -29,15 +29,15 @@ List Java examples before Node.js examples so agents see the preferred runtime
 first.
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar --input <inputDir> --output <outputDir>
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.1.1.jar --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.1.1.2.mjs --input <inputDir> --output <outputDir>
 ```
 
 Input encoding can be specified when needed:
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar --input <inputDir> --output <outputDir> --encoding shift_jis
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs --input <inputDir> --output <outputDir> --encoding-extension ".java=shift_jis"
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.1.1.jar --input <inputDir> --output <outputDir> --encoding shift_jis
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.1.1.2.mjs --input <inputDir> --output <outputDir> --encoding-extension ".java=shift_jis"
 ```
 
 Supported option names:
@@ -56,8 +56,8 @@ Supported option names:
 Meta commands:
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.0.1.jar --version
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs --version
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.1.1.jar --version
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.1.1.2.mjs --version
 ```
 
 ## CLI Operation Correspondence
@@ -72,12 +72,12 @@ node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.0.1.mjs --versio
 
 - `bundle_input_directory`: source directory scanned by the runtime
 - `bundle_output_directory`: destination directory created or updated by the runtime
-- `bundle_index_markdown`: `<prefix>-999-index.md`, file list, skipped-file diagnostics, warnings, and summary
-- `bundle_prompt_markdown`: `<prefix>-000-prompt.md`, prompt-oriented handoff guidance; recommended to paste into the AI Web UI message body first for stability
-- `bundle_part_markdown`: `<prefix>-001.md` through `<prefix>-998.md`, bundled source text parts
+- `bundle_prompt_markdown`: first generated part file, normally `<prefix>-001.md`, with `prompt: true` front matter and the prompt section
+- `bundle_terminal_index_markdown`: final generated part file, with `terminal: true` front matter and the index section
+- `bundle_part_markdown`: `<prefix>-001.md` through `<prefix>-999.md`, bundled source text parts
 - `operation_summary`: runtime stdout completion summary
 - `diagnostics_log`: stderr or index-file diagnostics when execution fails or skips files
 
-Do not treat the generated Markdown files as interchangeable. The index,
-prompt, and part files have different handoff roles and should be reported
-separately when summarizing a run.
+Do not treat the generated Markdown roles as interchangeable. The prompt-bearing
+first part, terminal index-bearing final part, and intermediate part files have
+different handoff roles and should be reported separately when summarizing a run.
