@@ -146,13 +146,28 @@ function buildPartMarkdown(part, metadata = {}, options = {}) {
         `- Approx chars: ${part.charCount}`,
         "",
     ];
-    for (const chunk of part.chunks) {
+    for (const [index, chunk] of part.chunks.entries()) {
+        if (index > 0) {
+            lines.push("---");
+            lines.push("");
+        }
         lines.push(...buildChunkMarkdown(chunk));
     }
     if (options.index) {
         lines.push(...buildIndexMarkdownLines(options.index, false));
     }
+    if (options.acknowledgeOnly) {
+        lines.push(...buildAcknowledgementFooterLines());
+    }
     return markdown(lines);
+}
+function buildAcknowledgementFooterLines() {
+    return [
+        "## Acknowledgement",
+        "",
+        "After reading this Part, do not analyze or summarize the content yet. Reply only with `OK`.",
+        "",
+    ];
 }
 function buildIndexMarkdownLines(params, includeFrontMatter) {
     const { inputDirectory, outputDirectory, parts, collectedFiles, skippedFiles, markers, warnings, toolName, toolVersion } = params;
@@ -213,7 +228,7 @@ function buildPromptMarkdownLines(params, includeFrontMatter) {
         "",
         "The Markdown bundle will be sent in multiple messages in the order listed below.",
         "",
-        "After each message, do not analyze or summarize the content yet. Reply only with `Received`.",
+        "After each non-terminal Part, do not analyze or summarize the content yet. Reply only with `OK`.",
         "",
         `Do not start the final response until you receive \`${indexFileName}\`.`,
         "",
@@ -359,7 +374,7 @@ function compareUtf16CodeUnits(left, right) {
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
 const CLI_DEFAULT_FILENAME_PREFIX = "text-bundle";
-const CLI_VERSION = "1.1.1";
+const CLI_VERSION = "1.3.0";
 const SUPPORTED_ENCODINGS = new Set(["utf-8", "shift_jis"]);
 const DEFAULT_EXCLUDE_EXTENSIONS = [
     ".7z",
@@ -520,6 +535,7 @@ function createParseState() {
         excludeExtensions: new Set(DEFAULT_EXCLUDE_EXTENSIONS),
         excludeDirectories: new Set(DEFAULT_EXCLUDE_DIRECTORIES),
         verbose: false,
+        dryRun: false,
     };
 }
 function consumeOption(argv, index, state) {
@@ -589,6 +605,10 @@ function consumeOption(argv, index, state) {
         state.verbose = true;
         return index;
     }
+    if (arg === "--dry-run") {
+        state.dryRun = true;
+        return index;
+    }
     if (arg.startsWith("-")) {
         throw new Error(`Unknown argument: ${arg}`);
     }
@@ -623,6 +643,7 @@ function parseArgs(argv) {
         excludeExtensions: [...state.excludeExtensions].sort(compareUtf16CodeUnits),
         excludeDirectories: [...state.excludeDirectories].sort(compareUtf16CodeUnits),
         verbose: state.verbose,
+        dryRun: state.dryRun,
     };
 }
 function printHelp() {
@@ -644,7 +665,9 @@ Default behavior:
 Inputs:
   Reads regular files under --input. Skips known binary extensions, default
   excluded directories such as .git, node_modules, dist, coverage, target,
-  workplace, and files ignored by the input root .gitignore.
+  workplace, and files ignored by the input root .gitignore. The .gitignore
+  matcher is simplified: nested .gitignore files and negation patterns are
+  not supported.
 
 Generated artifacts:
   <prefix>-001.md ... <prefix>-999.md
@@ -664,7 +687,7 @@ Diagnostics and exit codes:
 
 Options:
   --filename-prefix <prefix>       File basename prefix. Allowed: A-Z a-z 0-9 . _ -
-  --max-chars <number>             Max approximate characters per part.
+  --max-chars <number>             Max approximate source-content chars per part.
   --max-input-file-bytes <number>  Max bytes read from one input file.
   --encoding utf-8|shift_jis       Default input file encoding.
   --encoding-extension ".java=shift_jis"
@@ -673,6 +696,7 @@ Options:
   --add-exclude-directory "dir"
   --remove-exclude-directory "dir"
   --verbose                        Print ignored-file count details.
+  --dry-run                        Estimate collection and parts without writing files.
 
 Example:
   miku-text-bundle --input . --output out --filename-prefix my-repo-text-bundle
@@ -815,6 +839,7 @@ function discoverCandidateFiles(inputPath, outputPath, options, gitignorePattern
 
 // bundler.js
 const MAX_BUNDLE_PART_NUMBER = 999;
+const PRACTICAL_MARKDOWN_PART_CHAR_LIMIT = 128_000;
 const DEFAULT_FILENAME_PREFIX = "text-bundle";
 const DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
 const EMBEDDED_SECTION_RESERVE_MARGIN_CHARS = 256;
@@ -990,7 +1015,10 @@ function bundlePromptFileName(filenamePrefix) {
 function bundlePartFileName(filenamePrefix, partNumber) {
     return `${filenamePrefix}-${String(partNumber).padStart(3, "0")}.md`;
 }
-function createBundlePart(filenamePrefix, partNumber, chunks, charCount) {
+function chunksCharCount(chunks) {
+    return chunks.reduce((total, chunk) => total + chunk.content.length, 0);
+}
+function createBundlePart(filenamePrefix, partNumber, chunks, charCount = chunksCharCount(chunks)) {
     if (partNumber > MAX_BUNDLE_PART_NUMBER) {
         throw new Error(`Part count exceeds ${MAX_BUNDLE_PART_NUMBER}; only three-digit part file names are supported.`);
     }
@@ -1022,7 +1050,7 @@ function buildChunks(files, maxChars) {
     return { chunks, warnings };
 }
 function renumberParts(parts, filenamePrefix) {
-    return parts.map((part, index) => createBundlePart(filenamePrefix, index + 1, part.chunks, part.charCount));
+    return parts.map((part, index) => createBundlePart(filenamePrefix, index + 1, part.chunks));
 }
 function shrinkLastPartForReserve(parts, maxChars, filenamePrefix, lastPartReservedChars) {
     const lastPartMaxChars = effectiveMaxChars(maxChars, lastPartReservedChars);
@@ -1075,41 +1103,90 @@ function buildParts(files, maxChars, filenamePrefix, reserves = { firstPartChars
     }
     return { parts: shrinkLastPartForReserve(parts, maxChars, filenamePrefix, reserves.lastPartChars), warnings };
 }
+function buildRenderedPartMarkdown(params, partIndex) {
+    const { filenamePrefix, inputDirectory, outputDirectory, parts, collectedFiles, skippedFiles, markers, warnings } = params;
+    const part = parts[partIndex];
+    const promptFileName = bundlePromptFileName(filenamePrefix);
+    const indexFileName = parts.at(-1)?.fileName ?? promptFileName;
+    const isFirstPart = partIndex === 0;
+    const isLastPart = partIndex === parts.length - 1;
+    const metadata = {
+        toolName: "miku-text-bundle",
+        toolVersion: CLI_VERSION,
+    };
+    return buildPartMarkdown(part, metadata, {
+        prompt: isFirstPart ? {
+            promptFileName,
+            partFileNames: parts.map((bundlePart) => bundlePart.fileName),
+            indexFileName,
+            ...metadata,
+        } : undefined,
+        index: isLastPart ? {
+            inputDirectory: displayPathFromCurrentDirectory(inputDirectory),
+            outputDirectory: displayPathFromCurrentDirectory(outputDirectory),
+            parts,
+            collectedFiles,
+            skippedFiles,
+            markers,
+            warnings,
+            terminalFileName: indexFileName,
+            ...metadata,
+        } : undefined,
+        acknowledgeOnly: !isLastPart,
+    });
+}
+function ensureRenderedPartLimit(params) {
+    let adjustedParts = renumberParts(params.parts.map((part) => ({ ...part, chunks: [...part.chunks] })), params.filenamePrefix);
+    let remainingMoves = Math.max(1, adjustedParts.reduce((total, part) => total + part.chunks.length, 0) + MAX_BUNDLE_PART_NUMBER);
+    while (remainingMoves > 0) {
+        const renderParams = { ...params, parts: adjustedParts };
+        const overflowIndex = adjustedParts.findIndex((_, partIndex) => buildRenderedPartMarkdown(renderParams, partIndex).length > PRACTICAL_MARKDOWN_PART_CHAR_LIMIT);
+        if (overflowIndex === -1) {
+            return adjustedParts;
+        }
+        const overflowPart = adjustedParts[overflowIndex];
+        const isLastPart = overflowIndex === adjustedParts.length - 1;
+        if (overflowPart.chunks.length === 0) {
+            throw new Error(`Generated Markdown for ${overflowPart.fileName} exceeds ${PRACTICAL_MARKDOWN_PART_CHAR_LIMIT} characters even without file chunks.`);
+        }
+        if (overflowPart.chunks.length === 1 && !isLastPart) {
+            throw new Error(`Generated Markdown for ${overflowPart.fileName} exceeds ${PRACTICAL_MARKDOWN_PART_CHAR_LIMIT} characters with a single file chunk.`);
+        }
+        if (overflowPart.chunks.length === 1 && isLastPart) {
+            adjustedParts.push(createBundlePart(params.filenamePrefix, adjustedParts.length + 1, []));
+            adjustedParts = renumberParts(adjustedParts, params.filenamePrefix);
+            remainingMoves -= 1;
+            continue;
+        }
+        const movedChunk = overflowPart.chunks.pop();
+        if (isLastPart) {
+            adjustedParts.push(createBundlePart(params.filenamePrefix, adjustedParts.length + 1, [movedChunk]));
+        }
+        else {
+            adjustedParts[overflowIndex + 1].chunks.unshift(movedChunk);
+        }
+        adjustedParts = renumberParts(adjustedParts, params.filenamePrefix);
+        remainingMoves -= 1;
+    }
+    throw new Error(`Unable to keep generated Markdown parts under ${PRACTICAL_MARKDOWN_PART_CHAR_LIMIT} characters.`);
+}
 function writeBundleMarkdownFiles(params) {
-    const { outputDirectory, filenamePrefix, inputDirectory, parts, collectedFiles, skippedFiles, markers, warnings } = params;
+    const { outputDirectory, filenamePrefix, parts } = params;
     const promptFileName = bundlePromptFileName(filenamePrefix);
     const promptPath = join(outputDirectory, promptFileName);
     const partPaths = parts.map((part) => join(outputDirectory, part.fileName));
     const indexFileName = parts.at(-1)?.fileName ?? promptFileName;
     const indexPath = join(outputDirectory, indexFileName);
     for (const [index, part] of parts.entries()) {
-        const isFirstPart = index === 0;
-        const isLastPart = index === parts.length - 1;
-        writeFileSync(join(outputDirectory, part.fileName), buildPartMarkdown(part, {
-            toolName: "miku-text-bundle",
-            toolVersion: CLI_VERSION,
-        }, {
-            prompt: isFirstPart ? {
-                promptFileName,
-                partFileNames: parts.map((bundlePart) => bundlePart.fileName),
-                indexFileName,
-                toolName: "miku-text-bundle",
-                toolVersion: CLI_VERSION,
-            } : undefined,
-            index: isLastPart ? {
-                inputDirectory: displayPathFromCurrentDirectory(inputDirectory),
-                outputDirectory: displayPathFromCurrentDirectory(outputDirectory),
-                parts,
-                collectedFiles,
-                skippedFiles,
-                markers,
-                warnings,
-                terminalFileName: indexFileName,
-                toolName: "miku-text-bundle",
-                toolVersion: CLI_VERSION,
-            } : undefined,
-        }), "utf8");
+        writeFileSync(join(outputDirectory, part.fileName), buildRenderedPartMarkdown(params, index), "utf8");
     }
+    return { indexPath, promptPath, partPaths };
+}
+function plannedBundleMarkdownPaths(outputDirectory, filenamePrefix, parts) {
+    const promptFileName = bundlePromptFileName(filenamePrefix);
+    const promptPath = join(outputDirectory, promptFileName);
+    const partPaths = parts.map((part) => join(outputDirectory, part.fileName));
+    const indexPath = join(outputDirectory, parts.at(-1)?.fileName ?? promptFileName);
     return { indexPath, promptPath, partPaths };
 }
 function estimateEmbeddedPromptChars(parts, filenamePrefix) {
@@ -1171,11 +1248,35 @@ function buildPartsWithEmbeddedReserves(params) {
         };
         const nextResult = buildParts(files, maxChars, filenamePrefix, reserves);
         if (nextResult.parts.length === result.parts.length) {
-            return nextResult;
+            return {
+                parts: ensureRenderedPartLimit({
+                    outputDirectory,
+                    filenamePrefix,
+                    inputDirectory,
+                    parts: nextResult.parts,
+                    collectedFiles: files,
+                    skippedFiles,
+                    markers,
+                    warnings: nextResult.warnings,
+                }),
+                warnings: nextResult.warnings,
+            };
         }
         result = nextResult;
     }
-    return result;
+    return {
+        parts: ensureRenderedPartLimit({
+            outputDirectory,
+            filenamePrefix,
+            inputDirectory,
+            parts: result.parts,
+            collectedFiles: files,
+            skippedFiles,
+            markers,
+            warnings: result.warnings,
+        }),
+        warnings: result.warnings,
+    };
 }
 function printVerboseSummary(files, skipped, parts, ignored) {
     console.log(`collected=${files.length}`);
@@ -1202,7 +1303,9 @@ function createTextBundle(options, now = new Date()) {
     }
     const outputDirectory = chooseOutputDirectory(options.outputDirectory);
     const filenamePrefix = normalizeFilenamePrefix(options.filenamePrefix ?? DEFAULT_FILENAME_PREFIX);
-    mkdirSync(outputDirectory, { recursive: true });
+    if (!options.dryRun) {
+        mkdirSync(outputDirectory, { recursive: true });
+    }
     const gitignorePatterns = readRootGitignore(inputPath);
     const { files, skipped, ignored } = collectFiles(inputPath, outputDirectory, options, gitignorePatterns);
     const markers = files.flatMap((file) => file.markers);
@@ -1215,20 +1318,24 @@ function createTextBundle(options, now = new Date()) {
         skippedFiles: skipped,
         markers,
     });
-    const { indexPath, promptPath, partPaths } = writeBundleMarkdownFiles({
-        outputDirectory,
-        filenamePrefix,
-        inputDirectory: inputPath,
-        parts,
-        collectedFiles: files,
-        skippedFiles: skipped,
-        markers,
-        warnings,
-    });
+    const { indexPath, promptPath, partPaths } = options.dryRun
+        ? plannedBundleMarkdownPaths(outputDirectory, filenamePrefix, parts)
+        : writeBundleMarkdownFiles({
+            outputDirectory,
+            filenamePrefix,
+            inputDirectory: inputPath,
+            parts,
+            collectedFiles: files,
+            skippedFiles: skipped,
+            markers,
+            warnings,
+        });
     if (options.verbose) {
         printVerboseSummary(files, skipped, parts, ignored);
     }
-    printGeneratedPaths(partPaths);
+    if (!options.dryRun) {
+        printGeneratedPaths(partPaths);
+    }
     return {
         outputDirectory,
         indexPath,
@@ -1244,6 +1351,7 @@ function createTextBundle(options, now = new Date()) {
         ignoredByOutputDirectory: ignored.byOutputDirectory,
         partsGenerated: parts.length,
         warnings,
+        dryRun: options.dryRun ?? false,
     };
 }
 
@@ -1263,7 +1371,9 @@ function main() {
     try {
         const options = parseArgs(process.argv.slice(2));
         const result = createTextBundle(options);
-        console.log(`completed: ${result.partsGenerated} part(s), ${result.filesCollected} file(s) collected, ${result.filesSkipped} file(s) skipped, ${result.directoriesIgnored} directories ignored, ${result.filesIgnored} file(s) ignored`);
+        const prefix = result.dryRun ? "dry-run" : "completed";
+        const suffix = result.dryRun ? ", no files written" : "";
+        console.log(`${prefix}: ${result.partsGenerated} part(s), ${result.filesCollected} file(s) collected, ${result.filesSkipped} file(s) skipped, ${result.directoriesIgnored} directories ignored, ${result.filesIgnored} file(s) ignored${suffix}`);
     }
     catch (error) {
         if (error instanceof HelpRequestedError) {

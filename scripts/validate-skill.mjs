@@ -22,10 +22,10 @@ const requiredFiles = [
   "skills/igapyon-miku-text-bundle/references/upstream.md",
   "skills/igapyon-miku-text-bundle/references/workflow.md",
   "skills/igapyon-miku-text-bundle/references/runtime/operations-map.md",
-  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.1.1.2.mjs",
-  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-1.1.1.2.tgz",
-  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.1.1.jar",
-  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-1.1.1.jar",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.3.0.mjs",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-1.3.0.tgz",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.3.0.jar",
+  "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-1.3.0.jar",
   "workplace/.gitkeep"
 ];
 
@@ -74,7 +74,7 @@ for (const filePath of [
   "references/upstream.md",
   "references/workflow.md",
   "references/runtime/operations-map.md",
-  "runtime/miku-text-bundle-1.1.1.2.mjs"
+  "runtime/miku-text-bundle-1.3.0.mjs"
 ]) {
   if (!indexedPaths.has(filePath)) {
     throw new Error(`skills/igapyon-miku-text-bundle/index.json is missing ${filePath}`);
