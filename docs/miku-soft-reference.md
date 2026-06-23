@@ -7,8 +7,8 @@ installed `igapyon-miku-soft-developer` skill.
   <https://github.com/igapyon/igapyon-agent-skills/tree/devel/skills/igapyon-miku-soft-developer>
 - Main workflow used by this repository: `40-agent-skills-workflow.md`
 - Owning layer: Agent Skills companion repository
-- Compatibility source: `miku-text-bundle` release `v1.1.1.2`
-- Java companion runtime source: `miku-text-bundle-java` release `v1.1.1`
+- Compatibility source: `miku-text-bundle` release `v1.3.0`
+- Java companion runtime source: `miku-text-bundle-java` release `v1.3.0`
 
 Do not copy shared miku-soft basic documents into this repository. Keep
 project-specific status, release anchors, runtime artifact notes, and follow-up
