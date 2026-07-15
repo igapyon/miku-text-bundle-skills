@@ -10,14 +10,14 @@ CLI runtime surface for `miku-text-bundle`.
 - `version`: check that a runtime artifact starts and identifies itself
 - `help`: read the runtime CLI contract
 
-For CLI version `1.3.0`, Node.js and Java expose identical `--help` output.
+For CLI version `1.4.0`, Node.js and Java expose identical `--help` output.
 
 ## Runtime Search Order
 
 Prefer the bundled runtime artifacts in this repository:
 
-- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.3.0.jar`
-- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.3.0.mjs`
+- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar`
+- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs`
 
 Check these declared paths and SHA-256 digests before broad workspace
 exploration. Java is the default backend. Use Node.js when Java is unavailable
@@ -29,15 +29,15 @@ List Java examples before Node.js examples so agents see the preferred runtime
 first.
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.3.0.jar --input <inputDir> --output <outputDir>
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.3.0.mjs --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --input <inputDir> --output <outputDir>
 ```
 
 Input encoding can be specified when needed:
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.3.0.jar --input <inputDir> --output <outputDir> --encoding shift_jis
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.3.0.mjs --input <inputDir> --output <outputDir> --encoding-extension ".java=shift_jis"
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar --input <inputDir> --output <outputDir> --encoding shift_jis
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --input <inputDir> --output <outputDir> --encoding-extension ".java=shift_jis"
 ```
 
 Supported option names:
@@ -57,8 +57,8 @@ Supported option names:
 Meta commands:
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.3.0.jar --version
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.3.0.mjs --version
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar --version
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --version
 ```
 
 ## CLI Operation Correspondence

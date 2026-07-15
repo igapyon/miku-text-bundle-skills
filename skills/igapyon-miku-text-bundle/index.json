@@ -6,11 +6,11 @@
  "files": [
   {"name":"SKILL.md","path":"SKILL.md","ext":"md","dir":"","size":2957,"description":"Use only when the user explicitly asks to use igapyon-miku-text-bundle, miku-text-bundle, miku-text-bundle-skills, or a documented miku-text-bundle Agent Skill workflow. Do not activate for generic text editing, summarization, file bundling, archive cre...","summary":"igapyon-miku-text-bundle"},
   {"name":"openai.yaml","path":"agents/openai.yaml","ext":"yaml","dir":"agents","size":220},
-  {"name":"runtime-artifacts.mjs","path":"lib/runtime-artifacts.mjs","ext":"mjs","dir":"lib","size":4268},
+  {"name":"runtime-artifacts.mjs","path":"lib/runtime-artifacts.mjs","ext":"mjs","dir":"lib","size":4264},
   {"name":"INDEX.md","path":"references/INDEX.md","ext":"md","dir":"references","size":804,"summary":"miku-text-bundle References"},
-  {"name":"operations-map.md","path":"references/runtime/operations-map.md","ext":"md","dir":"references/runtime","size":3500,"summary":"Operations Map"},
-  {"name":"upstream.md","path":"references/upstream.md","ext":"md","dir":"references","size":3877,"summary":"Upstream Anchor"},
-  {"name":"workflow.md","path":"references/workflow.md","ext":"md","dir":"references","size":2942,"summary":"miku-text-bundle Agent Workflow"},
-  {"name":"miku-text-bundle-1.3.0.mjs","path":"runtime/miku-text-bundle-1.3.0.mjs","ext":"mjs","dir":"runtime","size":52845}
+  {"name":"operations-map.md","path":"references/runtime/operations-map.md","ext":"md","dir":"references/runtime","size":3506,"summary":"Operations Map"},
+  {"name":"upstream.md","path":"references/upstream.md","ext":"md","dir":"references","size":3941,"summary":"Upstream Anchor"},
+  {"name":"workflow.md","path":"references/workflow.md","ext":"md","dir":"references","size":2940,"summary":"miku-text-bundle Agent Workflow"},
+  {"name":"miku-text-bundle-1.4.0.mjs","path":"runtime/miku-text-bundle-1.4.0.mjs","ext":"mjs","dir":"runtime","size":50103}
  ]
 }
