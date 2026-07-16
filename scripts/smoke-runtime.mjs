@@ -84,6 +84,29 @@ async function runBackend(backend) {
   };
 }
 
+async function runKnowledgeSourceBackend(backend) {
+  const runtime = await resolveRuntime(root, backend);
+  const outputDir = path.join(smokeRoot, `${backend}-knowledge-output`);
+  await mkdir(outputDir, { recursive: true });
+  const [command, ...args] = runtime.command(runtime.path, inputDir, outputDir, [
+    "--mode",
+    "knowledge-source"
+  ]);
+  await runCommand(command, args);
+
+  const part = await readFile(path.join(outputDir, "knowledge-001.md"), "utf8");
+  const index = await readFile(path.join(outputDir, "knowledge-index.md"), "utf8");
+  if (!part.includes("hello miku-text-bundle")) {
+    throw new Error(`${backend} knowledge-source output did not include fixture content.`);
+  }
+  if (part.includes("prompt: true") || part.includes("terminal: true")) {
+    throw new Error(`${backend} knowledge-source part included handoff role metadata.`);
+  }
+  if (!index.includes("# Knowledge Bundle Index")) {
+    throw new Error(`${backend} knowledge-source management index was invalid.`);
+  }
+}
+
 await prepareFixture();
 const defaultPlan = await planRuntimeSelection({ root });
 if (defaultPlan.selectedBackend !== defaultRuntimeBackend) {
@@ -104,6 +127,7 @@ if (fallbackPlan.fallback?.from !== "java" || fallbackPlan.fallback?.to !== "nod
 const results = [];
 for (const backend of ["java", "node"]) {
   results.push(await runBackend(backend));
+  await runKnowledgeSourceBackend(backend);
 }
 
 for (const result of results) {

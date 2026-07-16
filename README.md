@@ -11,7 +11,7 @@ This repository is the `-skills` companion repository for:
 - Backend policy: `cli-preferred`, with no MCP backend in the initial version
 - Runtime selection: Java first, Node.js fallback when the Java runtime is missing or unusable
 
-The upstream main application compatibility source is `miku-text-bundle` release `v1.4.0`. The Java companion runtime source is `miku-text-bundle-java` release `v1.4.0`. Keep product semantics in the upstream applications and use this repository as the agent-facing workflow adapter.
+The upstream main application compatibility source is `miku-text-bundle` release `v1.5.1`. The Java companion runtime source is `miku-text-bundle-java` release `v1.5.0`. Keep product semantics in the upstream applications and use this repository as the agent-facing workflow adapter.
 
 ## Repository Layout
 
@@ -46,7 +46,7 @@ npm run build
 ```
 
 The generated release zip keeps the repository package name, such as
-`igapyon-miku-text-bundle-skills-1.4.0.zip`. Inside the extracted bundle, install
+`igapyon-miku-text-bundle-skills-1.5.1.zip`. Inside the extracted bundle, install
 the `skills/igapyon-miku-text-bundle/` directory into the target Agent Skills
 home.
 
@@ -69,16 +69,23 @@ in filename order, starting with `<prefix>-001.md`. The first part embeds the
 prompt instructions, and the final part embeds the index. For a one-part bundle,
 `<prefix>-001.md` is both the prompt-bearing and terminal index-bearing file.
 
+For neutral knowledge-source preparation, use `--mode knowledge-source`. This
+produces content parts plus a separate `<prefix>-index.md` management index;
+the content parts do not embed handoff prompts or a terminal index. Both the
+Node v1.5.1 and Java v1.5.0 runtimes support this mode.
+
 ## Runtime Artifacts
 
 The following received artifacts are expected under `skills/igapyon-miku-text-bundle/runtime/`:
 
-- `miku-text-bundle-1.4.0.mjs`
-- `miku-text-bundle-sources-1.4.0.tgz`
-- `miku-text-bundle-java-1.4.0.jar`
-- `miku-text-bundle-java-sources-1.4.0.jar`
+- `miku-text-bundle-1.5.1.mjs`
+- `miku-text-bundle-sources-1.5.1.tgz`
+- `miku-text-bundle-java-1.5.0.jar`
+- `miku-text-bundle-java-sources-1.5.0.jar`
 
-The Node and Java runtimes report CLI version `1.4.0` and support explicit input encoding options, including
+The Node runtime reports CLI version `1.5.1`; the Java runtime reports `1.5.0`.
+Both support handoff and
+knowledge-source modes, and support explicit input encoding options, including
 `--encoding shift_jis` and extension-specific rules such as
 `--encoding-extension ".java=shift_jis"`.
 

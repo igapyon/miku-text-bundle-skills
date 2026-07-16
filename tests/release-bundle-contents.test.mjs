@@ -32,10 +32,11 @@ test("release zip contains skill files and excludes development-only files", () 
   assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/upstream.md");
   assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/workflow.md");
   assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/runtime/operations-map.md");
-  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs");
-  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-1.4.0.tgz");
-  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar");
-  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-1.4.0.jar");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-sources-1.5.1.tgz");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar");
+  assertIncludes(entries, "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-sources-1.5.0.jar");
+  assert.equal(entries.some((entry) => entry.includes("1.4.0")), false);
 
   assert.equal(entries.some((entry) => entry.includes(".DS_Store")), false);
   assert.equal(entries.some((entry) => entry.includes(".gitkeep")), false);
