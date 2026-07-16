@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { TextDecoder } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -251,6 +251,63 @@ function buildPromptMarkdownLines(params, includeFrontMatter) {
 function buildPromptMarkdown(params) {
     return buildPromptMarkdownLines(normalizePromptMarkdownParams(params), true).join("\n");
 }
+function buildKnowledgeSourceMarkdown(part) {
+    const lines = [`# Knowledge Source ${String(part.partNumber).padStart(3, "0")}`, ""];
+    for (const [index, chunk] of part.chunks.entries()) {
+        if (index > 0) {
+            lines.push("---", "");
+        }
+        lines.push(`## Source: ${chunk.relativePath}`, "", `- Source path: ${code(chunk.relativePath)}`);
+        if (chunk.chunkCount > 1) {
+            lines.push(`- Source chunk: ${chunk.chunkIndex} / ${chunk.chunkCount}`);
+            lines.push(`- Source lines: ${chunk.sourceStartLine ?? 0}-${chunk.sourceEndLine ?? 0}`);
+        }
+        lines.push("");
+        if (chunk.extension === "md") {
+            lines.push(chunk.content, "");
+        }
+        else {
+            const fence = fenceFor(chunk.content);
+            lines.push(`${fence}${languageFor(chunk.extension)}`, chunk.content, fence, "");
+        }
+    }
+    return `${lines.join("\n")}\n`;
+}
+function buildKnowledgeIndexMarkdown(params) {
+    const generatedRows = [
+        ...params.parts.map((part) => [code(part.fileName), "knowledge-source", String(part.chunks.length), String(part.charCount)]),
+        [code(params.managementIndexFileName), "management-index", "-", "-"],
+    ];
+    const mappingRows = params.parts.flatMap((part) => part.chunks.map((chunk) => [
+        code(chunk.relativePath),
+        code(part.fileName),
+        `${chunk.chunkIndex} / ${chunk.chunkCount}`,
+        `${chunk.sourceStartLine ?? 0}-${chunk.sourceEndLine ?? 0}`,
+        `${chunk.sourceStartChar ?? 0}-${chunk.sourceEndChar ?? chunk.content.length}`,
+        String(chunk.originalCharCount),
+        String(chunk.content.length),
+    ]));
+    const staleLines = params.staleOutputCandidates.length === 0
+        ? ["- None", ""]
+        : params.staleOutputCandidates.map((path) => `- ${code(path)}`).concat("");
+    return markdown([
+        "# Knowledge Bundle Index", "",
+        "## Configuration", "",
+        ...table(["Option", "Effective value"], ["---", "---"], params.configuration.map(([key, value]) => [code(key), escapeTable(value)])),
+        "## Summary", "",
+        `- Collected files: ${params.collectedFiles.length}`,
+        `- Skipped files: ${params.skippedFiles.length}`,
+        `- Knowledge files: ${params.parts.length}`, "",
+        "## Generated Files", "",
+        ...table(["File", "Role", "Chunks", "Approx chars"], ["---", "---", "---:", "---:"], generatedRows),
+        "## Source Mapping", "",
+        ...table(["Source", "Generated file", "Chunk", "Source lines", "UTF-16 chars", "Source chars", "Chunk chars"], ["---", "---", "---:", "---:", "---:", "---:", "---:"], mappingRows),
+        "## Skipped Files", "", ...skippedFilesTable(params.skippedFiles),
+        "## Warnings", "", ...warningList(params.warnings),
+        "## Markers", "", markerTable(params.markers),
+        "## Stale Output Candidates", "", ...staleLines,
+    ]);
+}
 
 // match.js
 function escapeRegex(value) {
@@ -374,7 +431,8 @@ function compareUtf16CodeUnits(left, right) {
 const CLI_DEFAULT_MAX_CHARS = 120000;
 const CLI_DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
 const CLI_DEFAULT_FILENAME_PREFIX = "text-bundle";
-const CLI_VERSION = "1.4.0";
+const CLI_DEFAULT_KNOWLEDGE_FILENAME_PREFIX = "knowledge";
+const CLI_VERSION = "1.5.1";
 const SUPPORTED_ENCODINGS = new Set(["utf-8", "shift_jis"]);
 const DEFAULT_EXCLUDE_EXTENSIONS = [
     ".7z",
@@ -526,6 +584,8 @@ function parseEncodingExtensions(value) {
 function createParseState() {
     return {
         filenamePrefix: CLI_DEFAULT_FILENAME_PREFIX,
+        filenamePrefixExplicit: false,
+        mode: "handoff",
         maxChars: CLI_DEFAULT_MAX_CHARS,
         maxInputFileBytes: CLI_DEFAULT_MAX_INPUT_FILE_BYTES,
         encoding: {
@@ -556,6 +616,15 @@ function consumeOption(argv, index, state) {
     }
     if (arg === "--filename-prefix") {
         state.filenamePrefix = parseFilenamePrefix(readRequiredOptionValue(argv, index, "--filename-prefix"));
+        state.filenamePrefixExplicit = true;
+        return index + 1;
+    }
+    if (arg === "--mode") {
+        const mode = readRequiredOptionValue(argv, index, "--mode");
+        if (mode !== "handoff" && mode !== "knowledge-source") {
+            throw new Error("--mode must be one of: handoff, knowledge-source.");
+        }
+        state.mode = mode;
         return index + 1;
     }
     if (arg === "--max-chars") {
@@ -636,7 +705,12 @@ function parseArgs(argv) {
     return {
         inputDirectory,
         outputDirectory,
-        filenamePrefix: state.filenamePrefix,
+        filenamePrefix: state.filenamePrefixExplicit
+            ? state.filenamePrefix
+            : state.mode === "knowledge-source"
+                ? CLI_DEFAULT_KNOWLEDGE_FILENAME_PREFIX
+                : CLI_DEFAULT_FILENAME_PREFIX,
+        mode: state.mode,
         maxChars: state.maxChars,
         maxInputFileBytes: state.maxInputFileBytes,
         encoding: state.encoding,
@@ -653,12 +727,13 @@ function printHelp() {
   miku-text-bundle --version
 
 Description:
-  Scan local text-like files under --input and generate split Markdown bundle
-  files under --output for generative AI handoff. No network access is used.
+  Scan local text-like files under --input and generate split Markdown files
+  for AI handoff or neutral Knowledge source preparation. No network is used.
 
 Default behavior:
   Required: --input <dir>, --output <dir>
-  Defaults: --filename-prefix text-bundle, --max-chars 120000,
+  Defaults: --mode handoff, --filename-prefix text-bundle for handoff or
+  knowledge for knowledge-source, --max-chars 120000,
   --max-input-file-bytes 1000000, --encoding utf-8.
   Input paths are ordered by POSIX relative path using UTF-16 code units.
 
@@ -670,22 +745,27 @@ Inputs:
   not supported.
 
 Generated artifacts:
-  <prefix>-001.md ... <prefix>-999.md
+  handoff:          <prefix>-001.md ... <prefix>-999.md
+  knowledge-source: <prefix>-001.md ... <prefix>-999.md, <prefix>-index.md
   These files are generated artifacts and may be regenerated.
   The first part includes the prompt instructions.
   The final part includes the terminal index.
+  These two embedded sections apply only to handoff mode.
+  Knowledge source diagnostics are kept in the separate management index.
 
 Output and overwrite behavior:
   Creates --output when missing. Existing generated files with the same names
   are overwritten. Terminal stdout is progress/completion text, not a stable
-  machine-readable API. The Markdown files are the stable handoff artifacts.
+  machine-readable API. The Markdown files are the stable artifacts.
 
 Diagnostics and exit codes:
   Skipped readable-candidate files and split warnings are recorded in
   the final part index. Invalid usage or processing errors are printed to
-  stderr. Exit code 0 means success/help/version; exit code 1 means failure.
+  stderr. Knowledge diagnostics use the management index.
+  Exit code 0 means success/help/version; exit code 1 means failure.
 
 Options:
+  --mode handoff|knowledge-source  Output mode. Default: handoff.
   --filename-prefix <prefix>       File basename prefix. Allowed: A-Z a-z 0-9 . _ -
   --max-chars <number>             Max approximate source-content chars per part.
   --max-input-file-bytes <number>  Max bytes read from one input file.
@@ -700,6 +780,7 @@ Options:
 
 Example:
   miku-text-bundle --input . --output out --filename-prefix my-repo-text-bundle
+  miku-text-bundle --input . --output out --mode knowledge-source
 `);
 }
 function printVersion() {
@@ -840,6 +921,7 @@ function discoverCandidateFiles(inputPath, outputPath, options, gitignorePattern
 // bundler.js
 const MAX_BUNDLE_PART_NUMBER = 999;
 const DEFAULT_FILENAME_PREFIX = "text-bundle";
+const DEFAULT_KNOWLEDGE_FILENAME_PREFIX = "knowledge";
 const DEFAULT_MAX_INPUT_FILE_BYTES = 1_000_000;
 const EMBEDDED_SECTION_RESERVE_MARGIN_CHARS = 256;
 const EMBEDDED_SECTION_RESERVE_MARGIN_RATIO = 0.1;
@@ -962,7 +1044,18 @@ function createSingleFileChunk(file) {
         originalLineCount: file.lineCount,
         chunkIndex: 1,
         chunkCount: 1,
+        sourceStartLine: file.lineCount === 0 ? 0 : 1,
+        sourceEndLine: file.lineCount,
+        sourceStartChar: 0,
+        sourceEndChar: file.content.length,
     };
+}
+function sourceLineAtOffset(content, offset) {
+    if (content.length === 0) {
+        return 0;
+    }
+    const boundedOffset = Math.max(0, Math.min(offset, content.length - 1));
+    return 1 + (content.slice(0, boundedOffset).match(/\n/g)?.length ?? 0);
 }
 function splitContentByMaxChars(content, maxChars) {
     const chunks = [];
@@ -991,16 +1084,26 @@ function splitContentByMaxChars(content, maxChars) {
 }
 function createSplitFileChunks(file, chunkContents) {
     const chunkCount = chunkContents.length;
-    return chunkContents.map((content, index) => ({
-        relativePath: file.relativePath,
-        extension: file.extension,
-        content,
-        originalCharCount: file.charCount,
-        originalLineCount: file.lineCount,
-        chunkIndex: index + 1,
-        chunkCount,
-        splitReason: "This file exceeded the size limit and was split.",
-    }));
+    let sourceStartChar = 0;
+    return chunkContents.map((content, index) => {
+        const sourceEndChar = sourceStartChar + content.length;
+        const chunk = {
+            relativePath: file.relativePath,
+            extension: file.extension,
+            content,
+            originalCharCount: file.charCount,
+            originalLineCount: file.lineCount,
+            chunkIndex: index + 1,
+            chunkCount,
+            sourceStartLine: sourceLineAtOffset(file.content, sourceStartChar),
+            sourceEndLine: sourceLineAtOffset(file.content, Math.max(sourceStartChar, sourceEndChar - 1)),
+            sourceStartChar,
+            sourceEndChar,
+            splitReason: "This file exceeded the size limit and was split.",
+        };
+        sourceStartChar = sourceEndChar;
+        return chunk;
+    });
 }
 function splitOversizedFile(file, maxChars) {
     if (file.content.length <= maxChars) {
@@ -1153,6 +1256,68 @@ function plannedBundleMarkdownPaths(outputDirectory, filenamePrefix, parts) {
     const indexPath = join(outputDirectory, parts.at(-1)?.fileName ?? promptFileName);
     return { indexPath, promptPath, partPaths };
 }
+function knowledgeIndexFileName(filenamePrefix) {
+    return `${filenamePrefix}-index.md`;
+}
+function staleKnowledgeOutputs(outputDirectory, filenamePrefix, parts) {
+    if (!existsSync(outputDirectory)) {
+        return [];
+    }
+    const escapedPrefix = filenamePrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`^${escapedPrefix}-\\d{3}\\.md$`);
+    const planned = new Set(parts.map((part) => part.fileName));
+    return readdirSync(outputDirectory)
+        .filter((name) => pattern.test(name) && !planned.has(name))
+        .sort(compareUtf16CodeUnits);
+}
+function sortedEncodingExtensions(options) {
+    return Object.entries(options.encoding?.extensions ?? {})
+        .sort(([left], [right]) => compareUtf16CodeUnits(left, right))
+        .map(([extension, encoding]) => `${extension}=${encoding}`)
+        .join(", ");
+}
+function knowledgeConfiguration(options, filenamePrefix, inputDirectory, outputDirectory) {
+    return [
+        ["mode", "knowledge-source"],
+        ["input", displayPathFromCurrentDirectory(inputDirectory)],
+        ["output", displayPathFromCurrentDirectory(outputDirectory)],
+        ["filename-prefix", filenamePrefix],
+        ["max-chars", String(options.maxChars)],
+        ["max-input-file-bytes", String(options.maxInputFileBytes ?? DEFAULT_MAX_INPUT_FILE_BYTES)],
+        ["encoding", options.encoding?.default ?? DEFAULT_ENCODING_OPTIONS.default],
+        ["encoding-extension", sortedEncodingExtensions(options)],
+        ["exclude-extensions", [...(options.excludeExtensions ?? [])].sort(compareUtf16CodeUnits).join(", ")],
+        ["exclude-directories", [...(options.excludeDirectories ?? [])].sort(compareUtf16CodeUnits).join(", ")],
+    ];
+}
+function writeKnowledgeMarkdownFiles(params, options) {
+    const staleOutputCandidates = staleKnowledgeOutputs(params.outputDirectory, params.filenamePrefix, params.parts);
+    const partPaths = params.parts.map((part) => join(params.outputDirectory, part.fileName));
+    for (const [index, part] of params.parts.entries()) {
+        writeFileSync(partPaths[index], buildKnowledgeSourceMarkdown(part), "utf8");
+    }
+    const indexPath = join(params.outputDirectory, knowledgeIndexFileName(params.filenamePrefix));
+    writeFileSync(indexPath, buildKnowledgeIndexMarkdown({
+        managementIndexFileName: knowledgeIndexFileName(params.filenamePrefix),
+        configuration: knowledgeConfiguration(options, params.filenamePrefix, params.inputDirectory, params.outputDirectory),
+        parts: params.parts,
+        collectedFiles: params.collectedFiles,
+        skippedFiles: params.skippedFiles,
+        markers: params.markers,
+        warnings: params.warnings,
+        staleOutputCandidates,
+    }), "utf8");
+    return { indexPath, promptPath: partPaths[0], partPaths, staleOutputCandidates };
+}
+function plannedKnowledgeMarkdownPaths(outputDirectory, filenamePrefix, parts) {
+    const partPaths = parts.map((part) => join(outputDirectory, part.fileName));
+    return {
+        indexPath: join(outputDirectory, knowledgeIndexFileName(filenamePrefix)),
+        promptPath: partPaths[0],
+        partPaths,
+        staleOutputCandidates: staleKnowledgeOutputs(outputDirectory, filenamePrefix, parts),
+    };
+}
 function estimateEmbeddedPromptChars(parts, filenamePrefix) {
     const promptFileName = bundlePromptFileName(filenamePrefix);
     const indexFileName = parts.at(-1)?.fileName ?? promptFileName;
@@ -1242,51 +1407,70 @@ function printGeneratedPaths(partPaths) {
 }
 function createTextBundle(options, now = new Date()) {
     void now;
+    const mode = options.mode ?? "handoff";
     const inputPath = resolve(options.inputDirectory);
     const inputStat = statSync(inputPath, { throwIfNoEntry: false });
     if (!inputStat?.isDirectory()) {
         throw new Error(`Input directory does not exist: ${inputPath}`);
     }
     const outputDirectory = chooseOutputDirectory(options.outputDirectory);
-    const filenamePrefix = normalizeFilenamePrefix(options.filenamePrefix ?? DEFAULT_FILENAME_PREFIX);
+    const filenamePrefix = normalizeFilenamePrefix(options.filenamePrefix ?? (mode === "knowledge-source" ? DEFAULT_KNOWLEDGE_FILENAME_PREFIX : DEFAULT_FILENAME_PREFIX));
     if (!options.dryRun) {
         mkdirSync(outputDirectory, { recursive: true });
     }
     const gitignorePatterns = readRootGitignore(inputPath);
     const { files, skipped, ignored } = collectFiles(inputPath, outputDirectory, options, gitignorePatterns);
     const markers = files.flatMap((file) => file.markers);
-    const { parts, warnings } = buildPartsWithEmbeddedReserves({
-        files,
-        maxChars: options.maxChars,
-        filenamePrefix,
-        inputDirectory: inputPath,
-        outputDirectory,
-        skippedFiles: skipped,
-        markers,
-    });
-    const { indexPath, promptPath, partPaths } = options.dryRun
-        ? plannedBundleMarkdownPaths(outputDirectory, filenamePrefix, parts)
-        : writeBundleMarkdownFiles({
-            outputDirectory,
+    const { parts, warnings } = mode === "knowledge-source"
+        ? buildParts(files, options.maxChars, filenamePrefix)
+        : buildPartsWithEmbeddedReserves({
+            files,
+            maxChars: options.maxChars,
             filenamePrefix,
             inputDirectory: inputPath,
-            parts,
-            collectedFiles: files,
+            outputDirectory,
             skippedFiles: skipped,
             markers,
-            warnings,
         });
+    const writeParams = {
+        outputDirectory,
+        filenamePrefix,
+        inputDirectory: inputPath,
+        parts,
+        collectedFiles: files,
+        skippedFiles: skipped,
+        markers,
+        warnings,
+    };
+    const paths = mode === "knowledge-source"
+        ? options.dryRun
+            ? plannedKnowledgeMarkdownPaths(outputDirectory, filenamePrefix, parts)
+            : writeKnowledgeMarkdownFiles(writeParams, options)
+        : options.dryRun
+            ? { ...plannedBundleMarkdownPaths(outputDirectory, filenamePrefix, parts), staleOutputCandidates: [] }
+            : { ...writeBundleMarkdownFiles(writeParams), staleOutputCandidates: [] };
+    const { indexPath, promptPath, partPaths, staleOutputCandidates } = paths;
+    const resultWarnings = [
+        ...warnings,
+        ...staleOutputCandidates.map((fileName) => `Stale generated output remains: \`${fileName}\`.`),
+    ];
     if (options.verbose) {
         printVerboseSummary(files, skipped, parts, ignored);
     }
     if (!options.dryRun) {
         printGeneratedPaths(partPaths);
+        if (mode === "knowledge-source") {
+            printGeneratedPaths([indexPath]);
+        }
     }
     return {
+        mode,
         outputDirectory,
         indexPath,
         promptPath,
         partPaths,
+        knowledgeSourcePaths: mode === "knowledge-source" ? partPaths : [],
+        managementIndexPath: mode === "knowledge-source" ? indexPath : undefined,
         filesCollected: files.length,
         filesSkipped: skipped.length,
         directoriesIgnored: ignored.directories,
@@ -1296,7 +1480,7 @@ function createTextBundle(options, now = new Date()) {
         ignoredByGitignore: ignored.byGitignore,
         ignoredByOutputDirectory: ignored.byOutputDirectory,
         partsGenerated: parts.length,
-        warnings,
+        warnings: resultWarnings,
         dryRun: options.dryRun ?? false,
     };
 }
@@ -1319,7 +1503,9 @@ function main() {
         const result = createTextBundle(options);
         const prefix = result.dryRun ? "dry-run" : "completed";
         const suffix = result.dryRun ? ", no files written" : "";
-        console.log(`${prefix}: ${result.partsGenerated} part(s), ${result.filesCollected} file(s) collected, ${result.filesSkipped} file(s) skipped, ${result.directoriesIgnored} directories ignored, ${result.filesIgnored} file(s) ignored${suffix}`);
+        const artifactLabel = result.mode === "knowledge-source" ? "knowledge file(s)" : "part(s)";
+        const indexSuffix = result.mode === "knowledge-source" ? ", 1 management index" : "";
+        console.log(`${prefix}: ${result.partsGenerated} ${artifactLabel}${indexSuffix}, ${result.filesCollected} file(s) collected, ${result.filesSkipped} file(s) skipped, ${result.directoriesIgnored} directories ignored, ${result.filesIgnored} file(s) ignored${suffix}`);
     }
     catch (error) {
         if (error instanceof HelpRequestedError) {

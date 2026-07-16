@@ -7,17 +7,19 @@ CLI runtime surface for `miku-text-bundle`.
 
 - `bundle`: collect input-directory text files and generate Markdown handoff
   files under the selected output directory
+- `knowledge-source`: collect input-directory text files as neutral Markdown
+  knowledge parts with a separate management index
 - `version`: check that a runtime artifact starts and identifies itself
 - `help`: read the runtime CLI contract
 
-For CLI version `1.4.0`, Node.js and Java expose identical `--help` output.
+Node.js v1.5.1 and Java v1.5.0 expose identical `--help` output.
 
 ## Runtime Search Order
 
 Prefer the bundled runtime artifacts in this repository:
 
-- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar`
-- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs`
+- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar`
+- `skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs`
 
 Check these declared paths and SHA-256 digests before broad workspace
 exploration. Java is the default backend. Use Node.js when Java is unavailable
@@ -29,19 +31,20 @@ List Java examples before Node.js examples so agents see the preferred runtime
 first.
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar --input <inputDir> --output <outputDir>
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs --input <inputDir> --output <outputDir>
 ```
 
 Input encoding can be specified when needed:
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar --input <inputDir> --output <outputDir> --encoding shift_jis
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --input <inputDir> --output <outputDir> --encoding-extension ".java=shift_jis"
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar --input <inputDir> --output <outputDir> --encoding shift_jis
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs --input <inputDir> --output <outputDir> --encoding-extension ".java=shift_jis"
 ```
 
 Supported option names:
 
+- `--mode handoff|knowledge-source`
 - `--filename-prefix <prefix>`
 - `--max-chars <number>`
 - `--max-input-file-bytes <number>`
@@ -57,8 +60,8 @@ Supported option names:
 Meta commands:
 
 ```bash
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar --version
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --version
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar --version
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs --version
 ```
 
 ## CLI Operation Correspondence
@@ -66,6 +69,7 @@ node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --versio
 | Agent Skill operation | CLI backend shape | Notes |
 | --- | --- | --- |
 | `bundle` | `--input <inputDir> --output <outputDir>` | Primary Markdown handoff generation operation. Supports explicit input encoding options such as `--encoding shift_jis`. |
+| `knowledge-source` | `--input <inputDir> --output <outputDir> --mode knowledge-source` | Neutral Markdown parts plus a separate management index. Supported by Node v1.5.1 and Java v1.5.0. |
 | `version` | `--version` | Smoke check only. Java output may differ from the artifact file version. |
 | `help` | `--help` | Runtime contract reference. |
 
@@ -76,9 +80,11 @@ node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --versio
 - `bundle_prompt_markdown`: first generated part file, normally `<prefix>-001.md`, with `prompt: true` front matter and the prompt section
 - `bundle_terminal_index_markdown`: final generated part file, with `terminal: true` front matter and the index section
 - `bundle_part_markdown`: `<prefix>-001.md` through `<prefix>-999.md`, bundled source text parts
+- `knowledge_part_markdown`: `<prefix>-001.md` through `<prefix>-999.md`, neutral source text parts without embedded handoff sections
+- `knowledge_management_index_markdown`: `<prefix>-index.md`, separate diagnostics and file-management index
 - `operation_summary`: runtime stdout completion summary
 - `diagnostics_log`: stderr or index-file diagnostics when execution fails or skips files
 
-Do not treat the generated Markdown roles as interchangeable. The prompt-bearing
-first part, terminal index-bearing final part, and intermediate part files have
-different handoff roles and should be reported separately when summarizing a run.
+Do not treat the generated Markdown roles as interchangeable. Handoff prompt,
+terminal-index, and intermediate parts differ from neutral knowledge parts and
+their separate management index; report each role according to the selected mode.

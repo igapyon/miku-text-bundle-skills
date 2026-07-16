@@ -23,7 +23,9 @@ After a successful run, report:
 
 - runtime backend used: `java` or `node`
 - input directory and output directory
+- selected mode: `handoff` or `knowledge-source`
 - handoff guidance: send part files in filename order, starting with `<prefix>-001.md`; the first part embeds the prompt instructions and the final part embeds the index
+- knowledge-source guidance: use `<prefix>-001.md` onward as neutral content sources and keep `<prefix>-index.md` as the separate management and diagnostics index
 - generated files:
   - `<prefix>-001.md` through `<prefix>-998.md` as present
   - `<prefix>-999.md` when enough parts are generated
@@ -41,20 +43,20 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.4.0.mjs --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:
 
 ```sh
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.4.0.jar --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar --input <inputDir> --output <outputDir>
 ```
 
 Both runtimes support explicit input encoding options, including
 `--encoding shift_jis` and extension-specific rules such as
 `--encoding-extension ".java=shift_jis"`.
 
-Both runtimes expose identical `--help` output for CLI version `1.4.0`.
+Node v1.5.1 and Java v1.5.0 expose identical `--help` output.
 Treat `--help` as the runtime contract when option behavior needs confirmation.
 
 The initial smoke check generated:
