@@ -9,8 +9,8 @@
   {"name":"runtime-artifacts.mjs","path":"lib/runtime-artifacts.mjs","ext":"mjs","dir":"lib","size":4264},
   {"name":"INDEX.md","path":"references/INDEX.md","ext":"md","dir":"references","size":804,"summary":"miku-text-bundle References"},
   {"name":"operations-map.md","path":"references/runtime/operations-map.md","ext":"md","dir":"references/runtime","size":4090,"summary":"Operations Map"},
-  {"name":"upstream.md","path":"references/upstream.md","ext":"md","dir":"references","size":4301,"summary":"Upstream Anchor"},
+  {"name":"upstream.md","path":"references/upstream.md","ext":"md","dir":"references","size":4320,"summary":"Upstream Anchor"},
   {"name":"workflow.md","path":"references/workflow.md","ext":"md","dir":"references","size":3142,"summary":"miku-text-bundle Agent Workflow"},
-  {"name":"miku-text-bundle-1.5.1.mjs","path":"runtime/miku-text-bundle-1.5.1.mjs","ext":"mjs","dir":"runtime","size":59611}
+  {"name":"miku-text-bundle-1.6.0.mjs","path":"runtime/miku-text-bundle-1.6.0.mjs","ext":"mjs","dir":"runtime","size":62995}
  ]
 }

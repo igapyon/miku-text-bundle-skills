@@ -21,14 +21,15 @@ Keep it concise. Do not use this as a full work log or a replacement for `TODO.m
 - The installed-skill visibility fix was committed as `30dc47d fix: make miku-text-bundle skill visible`.
 - `agents/openai.yaml` no longer sets `policy.allow_implicit_invocation: false`.
 - Agent state management files have been initialized in this repository.
-- Node and Java runtime artifacts have been updated to upstream `v1.3.0`.
-- `npm test` and `npm run build` pass with the `v1.3.0` runtime set.
-- The local installed Codex skill was replaced from the generated `v1.3.0` bundle.
-- Local lightweight tag `v1.3.0` has been created.
+- Node and Java runtime artifacts have been updated to upstream `v1.6.0`.
+- Artifact names, SHA-256 declarations, documentation, tests, release workflow, and generated skill index are aligned on `v1.6.0`.
+- `npm test` and `npm run build` pass with the `v1.6.0` runtime set.
+- The generated release bundle is `bundle/igapyon-miku-text-bundle-skills-1.6.0.zip`.
+- The local Codex skill has not yet been reinstalled from the `v1.6.0` bundle, and the `v1.6.0` repository tag has not been created.
 
 ## Next Action
 
-- Verify in a fresh Codex thread that `igapyon-miku-text-bundle` appears in the loaded skill list, then push the branch/tag and create the GitHub Release only when requested.
+- Reinstall the local Codex skill from the generated `v1.6.0` bundle, verify it in a fresh thread, and create or push the tag and GitHub Release only when explicitly requested.
 
 ## Relevant Files
 
@@ -50,7 +51,6 @@ Keep it concise. Do not use this as a full work log or a replacement for `TODO.m
 
 ## Last Verification
 
-- `npm run build` passed on 2026-06-23 before state files were initialized.
-- `npm test` passed on 2026-06-23 after state files were initialized.
-- `npm test` passed on 2026-06-23 after updating Node and Java runtimes to `v1.3.0`.
-- `npm run build` passed on 2026-06-23 and generated `bundle/igapyon-miku-text-bundle-skills-1.3.0.zip`.
+- `npm test` passed on 2026-07-18 with 9 tests after updating Node and Java runtimes to `v1.6.0`.
+- `npm run build` passed on 2026-07-18 and generated `bundle/igapyon-miku-text-bundle-skills-1.6.0.zip`.
+- Node and Java `v1.6.0` runtimes report version `1.6.0` and expose identical `--help` output.
