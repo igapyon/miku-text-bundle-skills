@@ -43,20 +43,20 @@ The default runtime backend is `java`; fallback runtime order is `java`, then `n
 Node runtime:
 
 ```sh
-node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs --input <inputDir> --output <outputDir>
+node skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.6.0.mjs --input <inputDir> --output <outputDir>
 ```
 
 Java runtime:
 
 ```sh
-java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar --input <inputDir> --output <outputDir>
+java -jar skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.6.0.jar --input <inputDir> --output <outputDir>
 ```
 
 Both runtimes support explicit input encoding options, including
 `--encoding shift_jis` and extension-specific rules such as
 `--encoding-extension ".java=shift_jis"`.
 
-Node v1.5.1 and Java v1.5.0 expose identical `--help` output.
+Node v1.6.0 and Java v1.6.0 expose identical `--help` output.
 Treat `--help` as the runtime contract when option behavior needs confirmation.
 
 The initial smoke check generated:

@@ -46,3 +46,11 @@ GitHub latest release metadata reports `miku-text-bundle` `v1.3.0` and `miku-tex
 
 Impact:
 The skill package version, runtime artifact names, SHA-256 digest declarations, documentation, tests, generated index, bundle zip, and release tag target are aligned on `1.3.0`.
+
+## 2026-07-18: Update both runtime anchors to `v1.6.0`
+
+Reason:
+GitHub release metadata reports `miku-text-bundle` `v1.6.0` and `miku-text-bundle-java` `v1.6.0`, and both received runtime artifacts expose matching CLI help and version output.
+
+Impact:
+The skill package version, runtime artifact names, SHA-256 digest declarations, documentation, tests, generated index, and bundle zip target are aligned on `1.6.0`. Release tag creation remains a separate human-confirmed step.

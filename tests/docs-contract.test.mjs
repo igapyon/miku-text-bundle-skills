@@ -29,8 +29,8 @@ test("documents consistently declare CLI-backed Java-first operation without MCP
 
 test("documents expected runtime artifact names and generated output roles", () => {
   for (const artifact of [
-    "miku-text-bundle-java-1.5.0.jar",
-    "miku-text-bundle-1.5.1.mjs"
+    "miku-text-bundle-java-1.6.0.jar",
+    "miku-text-bundle-1.6.0.mjs"
   ]) {
     const pattern = new RegExp(escapeRegExp(artifact));
     assert.match(docs.readme, pattern);
@@ -51,12 +51,12 @@ test("documents expected runtime artifact names and generated output roles", () 
 
 test("node and java runtime help text is identical", () => {
   const nodeHelp = execFileSync("node", [
-    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.5.1.mjs",
+    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-1.6.0.mjs",
     "--help"
   ], { encoding: "utf8" }).trimEnd();
   const javaHelp = execFileSync("java", [
     "-jar",
-    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.5.0.jar",
+    "skills/igapyon-miku-text-bundle/runtime/miku-text-bundle-java-1.6.0.jar",
     "--help"
   ], { encoding: "utf8" }).trimEnd();
 
@@ -100,7 +100,7 @@ test("generated skill discovery index covers primary skill files", () => {
     "references/upstream.md",
     "references/workflow.md",
     "references/runtime/operations-map.md",
-    "runtime/miku-text-bundle-1.5.1.mjs"
+    "runtime/miku-text-bundle-1.6.0.mjs"
   ]) {
     assert.ok(indexedPaths.has(filePath), `missing index entry: ${filePath}`);
   }
@@ -114,8 +114,8 @@ test("repository links to shared miku-soft guidance instead of copying basic doc
 });
 
 test("release workflow verifies declared runtimes and uploads versioned bundle zip", () => {
-  assert.match(docs.releaseWorkflow, /miku-text-bundle-java-1\.5\.0\.jar/);
-  assert.match(docs.releaseWorkflow, /miku-text-bundle-1\.5\.1\.mjs/);
+  assert.match(docs.releaseWorkflow, /miku-text-bundle-java-1\.6\.0\.jar/);
+  assert.match(docs.releaseWorkflow, /miku-text-bundle-1\.6\.0\.mjs/);
   assert.match(docs.releaseWorkflow, /npm run build/);
   assert.match(docs.releaseWorkflow, /igapyon-miku-text-bundle-skills-\$\{\{ steps\.release_version\.outputs\.version \}\}\.zip/);
   assert.match(docs.releaseWorkflow, /softprops\/action-gh-release@v2/);
