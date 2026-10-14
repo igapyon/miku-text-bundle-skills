@@ -16,7 +16,6 @@ The upstream main application compatibility source is `miku-text-bundle` release
 ## Repository Layout
 
 - `skills/igapyon-miku-text-bundle/SKILL.md`: activation and primary operating instructions
-- `skills/igapyon-miku-text-bundle/index.json`: generated discovery index for the installed skill
 - `skills/igapyon-miku-text-bundle/references/`: detailed workflow and upstream notes
 - `skills/igapyon-miku-text-bundle/references/INDEX.md`: reference index for installed skill users
 - `skills/igapyon-miku-text-bundle/runtime/`: local destination for upstream runtime artifacts
@@ -92,6 +91,5 @@ knowledge-source modes, and support explicit input encoding options, including
 ## Developer Documents
 
 - [TODO.md](TODO.md)
-- [skills/igapyon-miku-text-bundle/index.json](skills/igapyon-miku-text-bundle/index.json)
 - [skills/igapyon-miku-text-bundle/references/INDEX.md](skills/igapyon-miku-text-bundle/references/INDEX.md)
 - [docs/miku-soft-reference.md](docs/miku-soft-reference.md)

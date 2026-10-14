@@ -8,7 +8,6 @@ const docs = {
   mikuSoftReference: read("docs/miku-soft-reference.md"),
   releaseWorkflow: read(".github/workflows/release-build.yml"),
   skill: read("skills/igapyon-miku-text-bundle/SKILL.md"),
-  skillIndexJson: read("skills/igapyon-miku-text-bundle/index.json"),
   index: read("skills/igapyon-miku-text-bundle/references/INDEX.md"),
   workflow: read("skills/igapyon-miku-text-bundle/references/workflow.md"),
   upstream: read("skills/igapyon-miku-text-bundle/references/upstream.md"),
@@ -84,26 +83,11 @@ test("reference index links to workflow, upstream, and operations map", () => {
   assert.match(docs.index, /\[runtime\/operations-map\.md\]\(runtime\/operations-map\.md\)/);
 });
 
-test("generated skill discovery index covers primary skill files", () => {
-  const indexJson = JSON.parse(docs.skillIndexJson);
-  assert.equal(indexJson.generator, "miku-indexgen");
-  assert.equal(indexJson.title, "igapyon-miku-text-bundle Skill Index");
-  assert.match(docs.skill, /Read `index\.json` first/);
+test("skill discovery follows direct reference routes", () => {
+  assert.equal(fs.existsSync("skills/igapyon-miku-text-bundle/index.json"), false);
+  assert.match(docs.skill, /Read `references\/workflow\.md`/);
+  assert.match(docs.skill, /scoped filename or text search/);
   assert.match(docs.skill, /runtime `--help` output as the primary CLI contract/);
-
-  const indexedPaths = new Set(indexJson.files.map((file) => file.path));
-  for (const filePath of [
-    "SKILL.md",
-    "agents/openai.yaml",
-    "lib/runtime-artifacts.mjs",
-    "references/INDEX.md",
-    "references/upstream.md",
-    "references/workflow.md",
-    "references/runtime/operations-map.md",
-    "runtime/miku-text-bundle-1.6.0.mjs"
-  ]) {
-    assert.ok(indexedPaths.has(filePath), `missing index entry: ${filePath}`);
-  }
 });
 
 test("repository links to shared miku-soft guidance instead of copying basic documents", () => {
