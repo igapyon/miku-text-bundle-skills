@@ -15,13 +15,12 @@ This initial version has received CLI runtime artifacts. The skill remains a thi
 
 ## Required First Checks
 
-1. Read `index.json` first to discover the available skill files and choose the specific references needed for the request.
+1. Confirm the requested input directory, output directory, and options. If a detail is not linked, use scoped filename or text search.
 2. Read `references/workflow.md` for the execution flow and result-reporting checklist.
 3. Read `references/runtime/operations-map.md` when you need command shapes, option names, output roles, or help/version checks.
 4. Read `references/upstream.md` when you need release anchors, artifact digests, or upstream limitations.
-5. Confirm the requested input directory, output directory, and options.
-6. Use the declared runtime artifacts under `runtime/` when execution is requested.
-7. Prefer Java runtime first; use Node.js runtime when Java is missing or unusable.
+5. Use the declared runtime artifacts under `runtime/` when execution is requested.
+6. Prefer Java runtime first; use Node.js runtime when Java is missing or unusable.
 
 ## Operating Rules
 
@@ -36,7 +35,6 @@ This initial version has received CLI runtime artifacts. The skill remains a thi
 
 ## References
 
-- `index.json`: generated discovery index for this installed skill
 - `references/INDEX.md`: detailed reference index
 - `references/upstream.md`: upstream anchor, compatibility source, and runtime artifact policy
 - `references/workflow.md`: CLI-backed workflow and runtime selection policy

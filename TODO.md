@@ -10,7 +10,7 @@
 - Java is the default runtime backend; Node is the fallback when Java is unavailable or unusable.
 - Runtime CLI supports handoff and knowledge-source modes plus explicit input encoding options, including Shift_JIS.
 - Node v1.6.0 and Java v1.6.0 both support knowledge-source execution.
-- Generated skill discovery index is present at `skills/igapyon-miku-text-bundle/index.json`.
+- Skill discovery uses direct references and scoped search; no root index is required.
 - Agent manifest no longer disables implicit invocation via `policy.allow_implicit_invocation`.
 - Bundle contents verification and isolated bundle smoke tests are in place.
 - GitHub Actions release asset workflow is present as `.github/workflows/release-build.yml`.

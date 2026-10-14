@@ -25,7 +25,6 @@ test("release zip contains skill files and excludes development-only files", () 
   }).trim().split(/\n/).filter(Boolean);
 
   assertIncludes(entries, "skills/igapyon-miku-text-bundle/SKILL.md");
-  assertIncludes(entries, "skills/igapyon-miku-text-bundle/index.json");
   assertIncludes(entries, "skills/igapyon-miku-text-bundle/agents/openai.yaml");
   assertIncludes(entries, "skills/igapyon-miku-text-bundle/lib/runtime-artifacts.mjs");
   assertIncludes(entries, "skills/igapyon-miku-text-bundle/references/INDEX.md");
